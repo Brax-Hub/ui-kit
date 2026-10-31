@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brax App Style Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --background:#fff;--foreground:#171717;--card:#fff;--muted:#f5f4f7;--muted-foreground:#55555a;
+  --border:#e4e2e6;--border-strong:#c8c5cd;--primary:#2563eb;--primary-foreground:#fff;--primary-hover:#1d4ed8;
+  --accent:#eaf0fe;--accent-foreground:#1e40af;--destructive:#c8281a;--success:#1f9f4a;--warning:#b45309;--info:#1d4ed8;--verified:#6d28d9;
+  --success-tint:rgba(34,197,94,.14);--warning-tint:rgba(244,183,64,.2);--destructive-tint:rgba(239,68,68,.12);--info-tint:rgba(37,99,235,.12);--verified-tint:rgba(139,92,246,.14);--neutral-tint:rgba(23,23,23,.06);
+  --sidebar:#f5f4f7;--sidebar-foreground:#2b2b2e;--sidebar-accent:#e9e7ec;--sidebar-border:#e4e2e6;--env-badge:#b45309;
+  --shadow-1:0 1px 2px rgba(11,13,18,.06);--shadow-3:0 12px 32px rgba(11,13,18,.12);--glow:0 0 0 4px rgba(37,99,235,.22);
+  --font-display:"Kinetika","Inter",system-ui,sans-serif;--font-sans:"Inter",system-ui,sans-serif;--font-mono:"LFT Etica Mono","JetBrains Mono",ui-monospace,monospace;
+}
+:root[data-theme="dark"]{
+  --background:#0b0d12;--foreground:#f3f4f7;--card:#14171f;--muted:#14171f;--muted-foreground:#b9bcc4;
+  --border:#2a2e38;--border-strong:#3a3f4b;--primary:#60a5fa;--primary-foreground:#0b0d12;--primary-hover:#93c5fd;
+  --accent:#172036;--accent-foreground:#93c5fd;--destructive:#ef4444;--success:#22c55e;--warning:#f4b740;--info:#60a5fa;--verified:#a78bfa;
+  --success-tint:rgba(34,197,94,.16);--warning-tint:rgba(244,183,64,.16);--destructive-tint:rgba(239,68,68,.16);--info-tint:rgba(96,165,250,.16);--verified-tint:rgba(167,139,250,.16);--neutral-tint:rgba(255,255,255,.06);
+  --sidebar:#0b0d12;--sidebar-foreground:#b9bcc4;--sidebar-accent:#1a1d24;--sidebar-border:#2a2e38;--env-badge:#f4b740;
+  --shadow-1:0 1px 0 rgba(255,255,255,.03) inset;--shadow-3:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px rgba(0,0,0,.45);--glow:0 0 0 4px rgba(96,165,250,.26);
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 var(--font-sans);color:var(--foreground);background:var(--background);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-.01em;margin:0}
+h1{font-size:22px}h2{font-size:16px}h3{font-size:14px}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-foreground)}
+.mono{font-family:var(--font-mono);font-size:13px}
+.muted{color:var(--muted-foreground)}
+.guide{max-width:1200px;margin:0 auto;padding:32px 24px 80px;display:grid;gap:40px}
+.guide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.guide-head h1{font-size:28px}
+section>h2{margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-1)}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid transparent;font:500 13px var(--font-sans);cursor:pointer;background:transparent;color:inherit;transition:background .15s}
+.btn-primary{background:var(--primary);color:var(--primary-foreground)}.btn-primary:hover{background:var(--primary-hover)}
+.btn-outline{border-color:var(--border);background:var(--card)}.btn-outline:hover{background:var(--muted)}
+.btn-ghost:hover{background:var(--muted)}
+.btn-danger{background:var(--destructive);color:#fff}
+.btn:focus-visible{outline:none;box-shadow:var(--glow)}
+.input{height:36px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:inherit;font:14px var(--font-sans);width:100%}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.badge::before{content:"";width:6px;height:6px;border-radius:999px;background:currentColor}
+.b-success{color:var(--success);background:var(--success-tint)}.b-warning{color:var(--warning);background:var(--warning-tint)}
+.b-danger{color:var(--destructive);background:var(--destructive-tint)}.b-info{color:var(--info);background:var(--info-tint)}
+.b-verified{color:var(--verified);background:var(--verified-tint)}.b-neutral{color:var(--muted-foreground);background:var(--neutral-tint)}
+.count{display:inline-flex;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--neutral-tint);font-size:11px;font-weight:600;align-items:center;justify-content:center}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.sw{border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:12px}
+.sw i{display:block;height:44px}
+.sw b{display:block;padding:6px 8px 0;font-weight:500}.sw span{display:block;padding:0 8px 6px;font-family:var(--font-mono);font-size:11px;color:var(--muted-foreground)}
+.type-row{display:grid;grid-template-columns:160px 1fr;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);align-items:baseline}
+.type-row:last-child{border:0}
+/* shell mock */
+.shell{display:grid;grid-template-columns:240px 1fr;height:560px;overflow:hidden;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow-1)}
+.sb{background:var(--sidebar);color:var(--sidebar-foreground);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;font-size:13px}
+.sb-head{display:flex;align-items:center;gap:8px;padding:14px 12px;font-weight:600;color:var(--foreground)}
+.mark{width:24px;height:24px;border-radius:6px;background:var(--foreground);color:var(--background);display:inline-flex;align-items:center;justify-content:center;font:700 13px var(--font-display)}
+.env{margin-left:auto;font:600 10px var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--env-badge);border:1px solid currentColor;border-radius:4px;padding:1px 5px}
+.sb-body{padding:4px 8px;flex:1;overflow:auto}
+.grp{margin:10px 4px 2px;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-foreground)}
+.grp::before{content:"▾";font-size:10px}
+.nav{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px;border-radius:8px;color:inherit}
+.nav:hover{background:var(--sidebar-accent)}
+.nav.on{background:var(--sidebar-accent);color:var(--primary);font-weight:500}
+.nav .ic{width:16px;height:16px;border:1.75px solid currentColor;border-radius:4px;opacity:.85}
+.nav .count{margin-left:auto}
+.sb-foot{border-top:1px solid var(--sidebar-border);padding:10px 12px;display:flex;align-items:center;gap:8px}
+.avatar{width:28px;height:28px;border-radius:999px;background:var(--accent);color:var(--accent-foreground);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.main{background:var(--background);display:flex;flex-direction:column;min-width:0}
+.topbar{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;font-size:13px}
+.crumbs span+span::before{content:"›";margin:0 6px;color:var(--muted-foreground)}
+.search{margin-left:auto;display:flex;align-items:center;gap:8px;height:32px;width:260px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--muted-foreground)}
+.search kbd{margin-left:auto;font:11px var(--font-mono);border:1px solid var(--border);border-radius:4px;padding:0 4px}
+.scope{height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;gap:6px}
+.page{padding:24px;overflow:auto}
+.ph{display:flex;align-items:flex-start;gap:12px}
+.ph .actions{margin-left:auto;display:flex;gap:8px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.tile{padding:14px 16px;display:flex;gap:12px;align-items:center}
+.tile .ic{width:36px;height:36px;border-radius:8px;background:var(--accent);color:var(--accent-foreground);display:flex;align-items:center;justify-content:center;font-size:16px}
+.tile .v{font:600 22px var(--font-sans);font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:12px;color:var(--muted-foreground)}
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.toolbar .input{width:240px;height:32px}
+.chip{height:28px;padding:0 10px;border:1px dashed var(--border-strong);border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:12px;background:var(--card)}
+.chip.on{border-style:solid;border-color:var(--primary);color:var(--accent-foreground);background:var(--accent)}
+.bulk{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accent);color:var(--accent-foreground);font-size:13px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:500;color:var(--muted-foreground);height:40px;padding:0 12px;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;white-space:nowrap}
+td{height:40px;padding:0 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+tr:hover td{background:var(--muted)}
+td.num,th.num{text-align:right;font-family:var(--font-mono)}
+.name{display:flex;align-items:center;gap:8px;font-weight:500}
+.logo{width:22px;height:22px;border-radius:6px;background:var(--muted);border:1px solid var(--border)}
+.kebab{color:var(--muted-foreground)}
+.pager{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:12px;color:var(--muted-foreground)}
+.pager .pages{margin-left:auto;display:flex;gap:4px}
+.pager .pages b{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);font-weight:500;color:var(--foreground)}
+.pager .pages b.on{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel .hd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.panel .hd .btn{margin-left:auto;height:28px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-child{border:0}
+.empty{padding:28px;text-align:center;color:var(--muted-foreground);font-size:13px}
+.empty .ic{width:40px;height:40px;border-radius:999px;background:var(--accent);color:var(--accent-foreground);margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
+.settings{display:grid;grid-template-columns:220px 1fr;gap:20px}
+.snav .grp{margin:12px 8px 4px}
+.snav .nav{height:30px}
+.field{display:grid;gap:4px;font-size:13px}
+.field label{font-weight:500}
+.field small{color:var(--muted-foreground);font-size:12px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+.cfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.danger{border-color:var(--destructive)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:16px 0}
+.tab{padding:8px 12px;font-size:13px;color:var(--muted-foreground);border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:6px;align-items:center}
+.tab.on{color:var(--foreground);border-color:var(--primary);font-weight:500}
+.auth{background:var(--muted);padding:40px;display:flex;justify-content:center;border-radius:12px;border:1px solid var(--border)}
+.auth .card{width:380px;padding:24px;display:grid;gap:12px}
+.toggle{position:fixed;right:20px;top:20px;z-index:5}
+</style>
+</head>
+<body>
+<button class="btn btn-outline toggle" onclick="var r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'">Toggle dark</button>
+<div class="guide">
+
+<div class="guide-head">
+  <div>
+    <div class="eyebrow">Brax Business Apps</div>
+    <h1>App style guide</h1>
+    <p class="muted" style="margin:6px 0 0;max-width:720px">Brax ink and paper neutrals, a blue accent, Kinetika titles, Inter text, mono for data. Shell, tables, detail pages, settings and auth follow the conventions below. Tokens live in <span class="mono">.claude/skills/brax-design-system/tokens.css</span>.</p>
+  </div>
+</div>
+
+<section>
+  <h2>Colour</h2>
+  <div class="swatches">
+    <div class="sw"><i style="background:#2563eb"></i><b>Primary</b><span>#2563EB · dark #60A5FA</span></div>
+    <div class="sw"><i style="background:#1d4ed8"></i><b>Primary hover</b><span>#1D4ED8</span></div>
+    <div class="sw"><i style="background:#eaf0fe;border-bottom:1px solid #e4e2e6"></i><b>Accent tint</b><span>#EAF0FE</span></div>
+    <div class="sw"><i style="background:#171717"></i><b>Ink</b><span>#171717</span></div>
+    <div class="sw"><i style="background:#55555a"></i><b>Meta text</b><span>#55555A</span></div>
+    <div class="sw"><i style="background:#f5f4f7;border-bottom:1px solid #e4e2e6"></i><b>Muted / sidebar</b><span>#F5F4F7</span></div>
+    <div class="sw"><i style="background:#e4e2e6"></i><b>Border</b><span>#E4E2E6</span></div>
+    <div class="sw"><i style="background:#0b0d12"></i><b>Dark bg</b><span>#0B0D12</span></div>
+    <div class="sw"><i style="background:#14171f"></i><b>Dark card</b><span>#14171F</span></div>
+    <div class="sw"><i style="background:#1f9f4a"></i><b>Success</b><span>#1F9F4A · dark #22C55E</span></div>
+    <div class="sw"><i style="background:#b45309"></i><b>Warning</b><span>#B45309 · dark #F4B740</span></div>
+    <div class="sw"><i style="background:#c8281a"></i><b>Danger</b><span>#C8281A · dark #EF4444</span></div>
+    <div class="sw"><i style="background:#6d28d9"></i><b>Verified</b><span>#6D28D9 · dark #A78BFA</span></div>
+    <div class="sw"><i style="background:#e65035"></i><b>Brand orange</b><span>wordmark only, never UI</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Type</h2>
+  <div class="card" style="padding:4px 16px">
+    <div class="type-row"><span class="eyebrow">Page title · 22/600</span><h1>Entities</h1></div>
+    <div class="type-row"><span class="eyebrow">Section · 16/600</span><h2>Bank accounts</h2></div>
+    <div class="type-row"><span class="eyebrow">Body · 14 Inter</span><span>Every legal entity in the group with its status and jurisdiction.</span></div>
+    <div class="type-row"><span class="eyebrow">Small · 13</span><span style="font-size:13px" class="muted">Last synced 4 minutes ago by Jane Owner</span></div>
+    <div class="type-row"><span class="eyebrow">Mono · data</span><span class="mono">GB29 BARC 2000 0020 4712 34 · €128,400.00 · 12345678</span></div>
+    <div class="type-row"><span class="eyebrow">Eyebrow · 11 mono</span><span class="eyebrow">Corporate</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>Buttons, badges, inputs</h2>
+  <div class="card" style="padding:16px;display:grid;gap:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary">+ Add entity</button><button class="btn btn-outline">Bulk upload</button><button class="btn btn-ghost">Cancel</button><button class="btn btn-danger">Delete</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge b-success">Active</span><span class="badge b-warning">Expiring soon</span><span class="badge b-danger">Overdue</span><span class="badge b-info">Scheduled</span><span class="badge b-verified">KYC verified</span><span class="badge b-neutral">Archived</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:620px">
+      <div class="field"><label>Company name</label><input class="input" value="Brax Holdings Ltd"><small>As registered.</small></div>
+      <div class="field"><label>Tax ID</label><input class="input mono" value="GB123456789"><small>Shown in mono.</small></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Shell and list page</h2>
+  <div class="shell">
+    <aside class="sb">
+      <div class="sb-head"><span class="mark">b</span> Entity Hub <span class="env">lab</span></div>
+      <div class="sb-body">
+        <div class="nav"><span class="ic"></span>Dashboard</div>
+        <div class="grp">Corporate</div>
+        <div class="nav on"><span class="ic"></span>Entities <span class="count">12</span></div>
+        <div class="nav"><span class="ic"></span>Directors &amp; UBOs</div>
+        <div class="nav"><span class="ic"></span>Cap table</div>
+        <div class="grp">Financial</div>
+        <div class="nav"><span class="ic"></span>Bank accounts</div>
+        <div class="nav"><span class="ic"></span>Credit cards</div>
+        <div class="nav"><span class="ic"></span>Tax IDs</div>
+        <div class="grp">Compliance</div>
+        <div class="nav"><span class="ic"></span>Filings <span class="count" style="color:var(--destructive)">2</span></div>
+        <div class="nav"><span class="ic"></span>Contracts</div>
+        <div class="nav"><span class="ic"></span>Documents</div>
+        <div class="grp">Admin</div>
+        <div class="nav"><span class="ic"></span>Users &amp; roles</div>
+        <div class="nav"><span class="ic"></span>Settings</div>
+      </div>
+      <div class="sb-foot"><span class="avatar">JO</span><div style="line-height:1.2"><div style="font-weight:500;color:var(--foreground)">Jane Owner</div><div class="muted" style="font-size:11px">Owner</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar"><span>☰</span><span class="crumbs"><span>Entity Hub</span><span>Entities</span></span><div class="search">🔍 Search… <kbd>⌘K</kbd></div><div class="scope">All entities ▾</div><span>🔔</span></div>
+      <div class="page">
+        <div class="ph"><div><h1>Entities</h1><div class="muted" style="font-size:13px">Every legal entity in the group with its status and jurisdiction.</div></div><div class="actions"><button class="btn btn-outline">Import ▾</button><button class="btn btn-primary">+ Add entity</button></div></div>
+        <div class="tiles">
+          <div class="card tile"><div class="ic">▣</div><div><div class="v">12</div><div class="l">Entities</div></div></div>
+          <div class="card tile"><div class="ic">◎</div><div><div class="v">3</div><div class="l">Jurisdictions</div></div></div>
+          <div class="card tile"><div class="ic">◷</div><div><div class="v">2</div><div class="l">Filings due in 30 days</div></div></div>
+          <div class="card tile"><div class="ic">!</div><div><div class="v" style="color:var(--destructive)">1</div><div class="l">Overdue</div></div></div>
+        </div>
+        <div class="card" style="overflow:hidden">
+          <div class="toolbar"><input class="input" placeholder="Search entities…"><span class="chip on">Status: Active ✕</span><span class="chip">Jurisdiction ▾</span><span class="chip">Type ▾</span><span style="margin-left:auto" class="btn btn-ghost">⋮ Columns</span></div>
+          <div class="bulk">2 selected <button class="btn btn-outline" style="height:26px">Export</button><button class="btn btn-outline" style="height:26px">Change status ▾</button><button class="btn btn-ghost" style="height:26px;color:var(--destructive)">Delete</button><span style="margin-left:auto">✕</span></div>
+          <table>
+            <thead><tr><th style="width:32px">☐</th><th>Name ↑</th><th>Type</th><th>Jurisdiction</th><th>Status</th><th>Next filing</th><th class="num">Share capital</th><th style="width:32px"></th></tr></thead>
+            <tbody>
+              <tr><td>☑</td><td><div class="name"><span class="logo"></span>Brax Holdings Ltd</div></td><td>Ltd</td><td>England and Wales</td><td><span class="badge b-success">Active</span></td><td>20 Nov 26</td><td class="num">1,000,000.00 GBP</td><td class="kebab">⋯</td></tr>
+              <tr><td>☑</td><td><div class="name"><span class="logo"></span>Brax Labs, Inc.</div></td><td>C-Corp</td><td>Delaware, US</td><td><span class="badge b-success">Active</span></td><td>01 Mar 27</td><td class="num">10,000.00 USD</td><td class="kebab">⋯</td></tr>
+              <tr><td>☐</td><td><div class="name"><span class="logo"></span>Brax Services EOOD</div></td><td>EOOD</td><td>Bulgaria</td><td><span class="badge b-danger">Overdue filing</span></td><td style="color:var(--destructive)">15 Oct 26</td><td class="num">2,000.00 BGN</td><td class="kebab">⋯</td></tr>
+            </tbody>
+          </table>
+          <div class="pager">Total share capital <span class="mono">1,012,000</span> · 1–3 of 3 <span class="pages"><b>‹</b><b class="on">1</b><b>›</b></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Detail page</h2>
+  <div class="card" style="padding:16px 20px">
+    <div class="muted" style="font-size:12px;margin-bottom:8px">Entities › Brax Holdings Ltd</div>
+    <div class="ph"><div><div style="display:flex;align-items:center;gap:10px"><h1>Brax Holdings Ltd</h1><span class="badge b-success">Active</span></div><div class="muted" style="font-size:13px;margin-top:4px">Ltd · England and Wales · Founded 14 Mar 2019 · FYE 31 March · <span class="mono">12345678</span> 📋</div></div><div class="actions"><button class="btn btn-outline">Edit</button><button class="btn btn-ghost">⋯</button></div></div>
+    <div class="tabs"><span class="tab on">Overview</span><span class="tab">Directors <span class="count">2</span></span><span class="tab">Banking <span class="count">3</span></span><span class="tab">Tax <span class="count">2</span></span><span class="tab">Filings <span class="count">4</span></span><span class="tab">Documents <span class="count">2</span></span><span class="tab">Providers <span class="count">2</span></span><span class="tab">Digital <span class="count">3</span></span></div>
+    <div class="two">
+      <div class="card panel"><div class="hd"><h3>Next filings</h3><span class="count">4</span><button class="btn btn-outline">+ Add</button></div>
+        <div class="row"><span class="badge b-danger">Overdue</span>NSI statistical report Q3<span class="muted" style="margin-left:auto">15 Oct 26</span></div>
+        <div class="row"><span class="badge b-warning">Due soon</span>VAT return Q3<span class="muted" style="margin-left:auto">07 Nov 26</span></div>
+        <div class="row"><span class="badge b-info">Scheduled</span>Confirmation statement<span class="muted" style="margin-left:auto">20 Nov 26</span></div>
+        <div class="row muted" style="justify-content:center">View all</div></div>
+      <div class="card panel"><div class="hd"><h3>Bank accounts</h3><span class="count">0</span><button class="btn btn-outline">+ Add</button></div>
+        <div class="empty"><div class="ic">🏦</div>No bank accounts yet. Add the first one to see balances and IBANs here.</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Settings</h2>
+  <div class="card" style="padding:16px 20px">
+    <div class="settings">
+      <nav class="snav">
+        <div class="grp">Workspace</div><div class="nav">General</div><div class="nav on">Members &amp; roles</div><div class="nav">Lookups</div>
+        <div class="grp">Security</div><div class="nav">Two-factor</div><div class="nav">Trusted devices</div><div class="nav">Audit log</div>
+        <div class="grp">Integrations</div><div class="nav">API keys</div><div class="nav">Webhooks</div><div class="nav">Scheduled jobs</div>
+        <div class="grp">Personal</div><div class="nav">Profile</div><div class="nav">Appearance</div>
+      </nav>
+      <div style="display:grid;gap:16px">
+        <div><h2>Members &amp; roles</h2><div class="muted" style="font-size:13px">Who can sign in and what they can do.</div></div>
+        <div class="card"><div class="panel hd" style="display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)"><h3>Members</h3><span class="count">4</span><button class="btn btn-primary" style="margin-left:auto;height:28px">Invite member</button></div>
+          <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>MFA</th><th>Last seen</th><th></th></tr></thead><tbody>
+            <tr><td>Jane Owner</td><td class="mono">owner@brax-lab.test</td><td>Owner ▾</td><td><span class="badge b-success">Enrolled</span></td><td>Today</td><td class="kebab">⋯</td></tr>
+            <tr><td>Vic Viewer</td><td class="mono">viewer@brax-lab.test</td><td>Viewer ▾</td><td><span class="badge b-warning">Not enrolled</span></td><td>3 days ago</td><td class="kebab">⋯</td></tr>
+          </tbody></table></div>
+        <div class="card"><div class="form"><div class="field"><label>Workspace name</label><input class="input" value="Brax Lab"></div><div class="field"><label>Default currency</label><input class="input mono" value="EUR"></div></div><div class="cfoot"><button class="btn btn-ghost">Cancel</button><button class="btn btn-primary">Save</button></div></div>
+        <div class="card danger"><div style="padding:14px 16px;display:flex;align-items:center;gap:12px"><div><h3 style="color:var(--destructive)">Danger zone</h3><div class="muted" style="font-size:13px">Deleting the workspace removes every entity and document. This cannot be undone.</div></div><button class="btn btn-danger" style="margin-left:auto">Delete workspace</button></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Sign in</h2>
+  <div class="auth"><div class="card">
+    <div style="display:flex;align-items:center;gap:8px;font-weight:600"><span class="mark">b</span> Entity Hub <span class="env">lab</span></div>
+    <div><h2 style="font-size:20px">Sign in</h2><div class="muted" style="font-size:13px">Welcome back.</div></div>
+    <div class="field"><label>Email</label><input class="input" placeholder="you@brax.team"></div>
+    <div class="field"><label style="display:flex">Password <a style="margin-left:auto;color:var(--primary);font-weight:400">Forgot password?</a></label><input class="input" type="password" value="••••••••"></div>
+    <button class="btn btn-primary" style="width:100%;height:36px;justify-content:center">Sign in →</button>
+    <div class="muted" style="font-size:12px;text-align:center">Invite-only access · Brax</div>
+  </div></div>
+</section>
+
+</div>
+<script>var q=location.search;if(q.indexOf('theme=dark')>-1||(q.indexOf('theme=light')<0&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'</script>
+</body>
+</html>
