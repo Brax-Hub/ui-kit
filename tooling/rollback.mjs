@@ -1,4 +1,4 @@
-// Restores a Brax Business App release (git tag + database snapshot + Cloudflare Worker version) from its ledger row,
+// Restores a Brax Business App release (git tag + database snapshot + module image digest) from its ledger row,
 // or records a new row. Node 22+, no dependencies. Prints the commands; runs them only with --yes, stops at the first failure.
 // Usage:
 //   node tooling/rollback.mjs [rollback] <tag> --env lab|local [--yes] [--branch] [--app <dir>] [--ledger <file>]
@@ -6,7 +6,9 @@
 //        [--app <dir>] [--ledger <file>]
 // Ledger: docs/<app>/releases.md (<app> = package.json name of --app without the "brax-" prefix, default dir = cwd).
 // --env production additionally needs --yes --i-know. Lab and production restores read LAB_DATABASE_URL and
-// PROD_DATABASE_URL (hosted Postgres connection strings) from the environment. Storage objects and secrets are not restored.
+// PROD_DATABASE_URL (the hub database's connection string, reachable from the hub host) from the environment; the
+// image step writes APP_IMAGE=<digest> into deploy/hub/.env.<env> and prints the redeploy command for the hub host.
+// Files on the module volume and secrets are not restored.
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import path from 'node:path'
@@ -82,15 +84,18 @@ if (!snapshot) fail('row for ' + tag + ' has no snapshot file')
 if (env !== 'local' && !version) fail('row for ' + tag + ' has no ' + env + ' version id')
 
 const q = (s) => (/^[\w@%+=:,./\\-]+$/.test(s) ? s : '"' + s.replace(/"/g, '\\"') + '"')
-const psqlUrl = env === 'local' ? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
-  : process.env[env === 'lab' ? 'LAB_DATABASE_URL' : 'PROD_DATABASE_URL']
-const urlName = env === 'lab' ? '$LAB_DATABASE_URL' : '$PROD_DATABASE_URL'
+const psqlUrl = env === 'local' ? (process.env.DATABASE_URL ?? '') : process.env[env === 'lab' ? 'LAB_DATABASE_URL' : 'PROD_DATABASE_URL']
+const urlName = env === 'lab' ? '$LAB_DATABASE_URL' : env === 'production' ? '$PROD_DATABASE_URL' : '$DATABASE_URL'
+const envFile = path.join('deploy', 'hub', `.env.${env}`)
+const pinImage = `node -e "const f=${JSON.stringify(envFile)},fs=require('fs');let t=fs.existsSync(f)?fs.readFileSync(f,'utf8'):'';t=/^APP_IMAGE=/m.test(t)?t.replace(/^APP_IMAGE=.*$/m,'APP_IMAGE=${version}'):t+(t&&!t.endsWith('\\n')?'\\n':'')+'APP_IMAGE=${version}\\n';fs.writeFileSync(f,t);console.log('pinned '+f)"`
 const steps = [
   { label: 'code', cmd: args.branch ? `git checkout -b rollback/${tag} ${q(tag)}` : `git checkout --detach ${q(tag)}` },
-  ...(env === 'local' ? [{ label: 'database (reset)', cmd: 'npx supabase db reset' }] : []),
-  { label: 'database (restore)', cmd: `psql ${q(psqlUrl ?? urlName)} -v ON_ERROR_STOP=1 -f ${q(snapshot)}`,
-    show: `psql ${env === 'local' ? q(psqlUrl) : urlName} -v ON_ERROR_STOP=1 -f ${q(snapshot)}` },
-  ...(env === 'local' ? [] : [{ label: 'worker', cmd: `npx wrangler rollback --env ${env} ${q(version)} --yes` }]),
+  ...(env === 'local'
+    ? [{ label: 'database (reset)', cmd: 'node tooling/db.mjs reset' },
+       { label: 'database (restore)', cmd: `node tooling/db.mjs restore ${q(snapshot)}` }]
+    : [{ label: 'database (restore)', cmd: `pg_restore --clean --if-exists --single-transaction -d ${q(psqlUrl ?? urlName)} ${q(snapshot)}`,
+         show: `pg_restore --clean --if-exists --single-transaction -d ${urlName} ${q(snapshot)}` },
+       { label: 'image (pin digest)', cmd: pinImage, show: `write APP_IMAGE=${version} into ${envFile}, then on the hub host: docker compose --env-file ${envFile} up -d <slug>` }]),
 ]
 
 console.log(`Release ${tag} (${date}, commit ${commit}) on ${env}, app ${app}, ledger ${ledger}`)
