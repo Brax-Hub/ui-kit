@@ -95,14 +95,20 @@ create or replace function app.is_active() returns boolean
 language sql stable security definer set search_path = public, pg_temp as $$
   select exists (select 1 from public.memberships m where m.id = (select auth.uid()) and m.status = 'active')
 $$;
+-- The acting member's tenant. One hub is one tenant today, so this is defence in depth: every policy on a table with a
+-- tenant also checks it, and a member of another tenant (or a second hub's data restored here) sees nothing.
+create or replace function app.tenant_id() returns uuid
+language sql stable security definer set search_path = public, pg_temp as $$
+  select m.tenant_id from public.memberships m where m.id = (select auth.uid()) and m.status = 'active'
+$$;
 create or replace function app.is_writer() returns boolean
 language sql stable as $$ select (select app.role()) in ('owner', 'admin', 'member') $$;
 create or replace function app.is_admin() returns boolean
 language sql stable as $$ select (select app.role()) in ('owner', 'admin') $$;
 create or replace function app.is_owner() returns boolean
 language sql stable as $$ select (select app.role()) = 'owner' $$;
-revoke execute on function app.member_row(), app.role(), app.is_active(), app.is_writer(), app.is_admin(), app.is_owner() from public, anon;
-grant execute on function app.member_row(), app.role(), app.is_active(), app.is_writer(), app.is_admin(), app.is_owner() to authenticated, service_role;
+revoke execute on function app.member_row(), app.role(), app.tenant_id(), app.is_active(), app.is_writer(), app.is_admin(), app.is_owner() from public, anon;
+grant execute on function app.member_row(), app.role(), app.tenant_id(), app.is_active(), app.is_writer(), app.is_admin(), app.is_owner() to authenticated, service_role;
 
 -- What a cron schedule runs: queue a run for the job runner in the process (src/server/jobs).
 create or replace function app.enqueue_job(job_name text) returns uuid
@@ -117,9 +123,10 @@ alter table public.tenants enable row level security;
 alter table public.tenants force row level security;
 grant select, insert, update, delete on public.tenants to authenticated;
 revoke all on public.tenants from anon;
-create policy tenants_select on public.tenants for select to authenticated using ((select app.is_active()));
+create policy tenants_select on public.tenants for select to authenticated using ((select app.is_active()) and id = (select app.tenant_id()));
 create policy tenants_insert on public.tenants for insert to authenticated with check (false);
-create policy tenants_update on public.tenants for update to authenticated using ((select app.is_owner())) with check ((select app.is_owner()));
+create policy tenants_update on public.tenants for update to authenticated
+  using ((select app.is_owner()) and id = (select app.tenant_id())) with check ((select app.is_owner()) and id = (select app.tenant_id()));
 create policy tenants_delete on public.tenants for delete to authenticated using (false);
 
 -- RLS: memberships. Every active member sees the team (names, roles); owners and admins change app roles and status;
@@ -128,11 +135,11 @@ alter table public.memberships enable row level security;
 alter table public.memberships force row level security;
 grant select, insert, update, delete on public.memberships to authenticated;
 revoke all on public.memberships from anon;
-create policy memberships_select on public.memberships for select to authenticated using ((select app.is_active()));
+create policy memberships_select on public.memberships for select to authenticated using ((select app.is_active()) and tenant_id = (select app.tenant_id()));
 create policy memberships_insert on public.memberships for insert to authenticated with check (false);
 create policy memberships_update on public.memberships for update to authenticated
-  using ((select app.is_admin()) and id <> (select auth.uid()))
-  with check ((select app.is_admin()) and id <> (select auth.uid()));
+  using ((select app.is_admin()) and tenant_id = (select app.tenant_id()) and id <> (select auth.uid()))
+  with check ((select app.is_admin()) and tenant_id = (select app.tenant_id()) and id <> (select auth.uid()));
 create policy memberships_delete on public.memberships for delete to authenticated using (false);
 
 -- RLS: items. A team item is everyone's to read; a private one is its owner's. Writers add their own; an owner edits
@@ -142,14 +149,14 @@ alter table public.items force row level security;
 grant select, insert, update, delete on public.items to authenticated;
 revoke all on public.items from anon;
 create policy items_select on public.items for select to authenticated
-  using ((select app.is_active()) and (visibility = 'team' or owner_id = (select auth.uid())));
+  using ((select app.is_active()) and tenant_id = (select app.tenant_id()) and (visibility = 'team' or owner_id = (select auth.uid())));
 create policy items_insert on public.items for insert to authenticated
-  with check ((select app.is_writer()) and owner_id = (select auth.uid()));
+  with check ((select app.is_writer()) and tenant_id = (select app.tenant_id()) and owner_id = (select auth.uid()));
 create policy items_update on public.items for update to authenticated
-  using ((select app.is_writer()) and (owner_id = (select auth.uid()) or (select app.is_admin())))
-  with check ((select app.is_writer()) and (owner_id = (select auth.uid()) or (select app.is_admin())));
+  using ((select app.is_writer()) and tenant_id = (select app.tenant_id()) and (owner_id = (select auth.uid()) or (select app.is_admin())))
+  with check ((select app.is_writer()) and tenant_id = (select app.tenant_id()) and (owner_id = (select auth.uid()) or (select app.is_admin())));
 create policy items_delete on public.items for delete to authenticated
-  using ((select app.is_admin()) or ((select app.is_writer()) and owner_id = (select auth.uid())));
+  using (tenant_id = (select app.tenant_id()) and ((select app.is_admin()) or ((select app.is_writer()) and owner_id = (select auth.uid()))));
 
 -- RLS: jobs and job_runs are the scheduler's; admins read them on the Settings page, the service role writes them.
 alter table public.jobs enable row level security;

@@ -69,13 +69,13 @@ const list = await fetch(`${base}/mcp`, { method: 'POST', headers: { 'content-ty
 check('MCP lists the manifest tools', JSON.stringify(list.result?.tools?.map((t) => t.name)) === JSON.stringify(['list_items', 'add_item']), JSON.stringify(list))
 const bare = await fetch(`${base}/mcp`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'list_items', arguments: {} } }) }).then((r) => r.json())
 check('MCP refuses a call without a token', bare.error?.data?.code === 'token_required', JSON.stringify(bare))
-const stub = ['../dev/gateway-stub.mjs', 'tooling/gateway-stub.mjs'].map((p) => join(process.cwd(), p)).find(existsSync)
+const stub = [join(process.cwd(), 'tooling', 'gateway-stub.mjs')].find(existsSync)
 if (stub) {
   const r = spawnSync(process.execPath, [stub, 'call', 'list_items', '{}', '--as', 'owner', '--url', `${base}/mcp`], { encoding: 'utf8' })
   check('the gateway stub lists the owner\'s rows through MCP', r.status === 0 && r.stdout.includes('Board pack notes'), (r.stdout + r.stderr).slice(0, 300))
   const viewer = spawnSync(process.execPath, [stub, 'call', 'add_item', '{"title":"nope"}', '--as', 'viewer', '--url', `${base}/mcp`], { encoding: 'utf8' })
   check('the gateway stub sees RLS refuse the viewer\'s add_item', viewer.stdout.includes('member_not_allowed'), viewer.stdout.slice(0, 300))
-} else check('gateway stub present', false, 'kit/dev/gateway-stub.mjs not found')
+} else check('gateway stub present', false, 'tooling/gateway-stub.mjs not found')
 
 console.log(failed ? `smoke: ${failed} failed, ${passed} passed` : `smoke: ${passed} checks passed`)
 process.exit(failed ? 1 : 0)

@@ -20,6 +20,8 @@ const MEMBERS = {
   viewer: '10000000-0000-4000-8000-000000000004',
 }
 const STRANGER = '99999999-0000-4000-8000-000000000999'
+const OTHER_TENANT = '00000000-0000-4000-8000-000000000002'
+const OUTSIDER = '10000000-0000-4000-8000-000000000099'
 const OWNER_PRIVATE_ITEM = '20000000-0000-4000-8000-000000000004'
 const MIA_ITEM = '20000000-0000-4000-8000-000000000003'
 
@@ -52,8 +54,9 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
     const ctx = (role) => {
       if (role === 'anon') return { role: 'anon', claims: null }
       if (role === 'service') return { role: 'service_role', claims: { role: 'service_role' } }
-      const sub = role === 'stranger' ? STRANGER : MEMBERS[role]
-      return { role: 'authenticated', claims: { sub, role: 'authenticated', aud: 'authenticated', hub_role: role === 'viewer' ? 'member' : role } }
+      const sub = role === 'stranger' ? STRANGER : role === 'outsider' ? OUTSIDER : MEMBERS[role]
+      const hubRole = role === 'viewer' ? 'member' : role === 'outsider' ? 'owner' : role
+      return { role: 'authenticated', claims: { sub, role: 'authenticated', aud: 'authenticated', hub_role: hubRole } }
     }
     /** One statement as the role, inside a transaction that always rolls back: { ok, value, rows } or { ok: false, error }. */
     async function run(role, sql, params = []) {
@@ -144,6 +147,18 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
     expect('an inactive admin sees no items', await count('admin', 'items'), (n) => n === 0)
     expect('an inactive admin cannot insert', await insertItem('admin'), denied)
     await backend.db.query(`update public.memberships set status = 'active' where id = $1`, [MEMBERS.admin])
+
+    // 7. A second tenant's owner sees only their own tenant: no rows of this one, no writes into it. One hub is one
+    //    tenant today; this proves the tenant check every policy carries (brax-security-rbs 4.2).
+    await backend.db.query(`insert into public.tenants (id, name) values ($1, 'Other hub')`, [OTHER_TENANT])
+    await backend.db.query(`insert into public.memberships (id, tenant_id, hub_member_id, hub_role, role, name) values ($1, $2, 'other-owner', 'owner', 'owner', 'Other Owner')`, [OUTSIDER, OTHER_TENANT])
+    expect('an outsider reads only their own tenant', await run('outsider', `select id from public.tenants`), (r) => r.ok && r.rows.length === 1 && r.value === OTHER_TENANT)
+    expect('an outsider sees only their own team', await count('outsider', 'memberships'), (n) => n === 1)
+    expect('an outsider sees no items of this tenant', await count('outsider', 'items'), (n) => n === 0)
+    expect('an outsider cannot rename this tenant (zero rows)', await run('outsider', `update public.tenants set name = 'Taken' where id = '${TENANT}' returning id`), (r) => r.ok && r.rows.length === 0)
+    expect('an outsider cannot change this tenant\'s roles (zero rows)', await run('outsider', `update public.memberships set role = 'viewer' where id = '${MEMBERS.member}' returning id`), (r) => r.ok && r.rows.length === 0)
+    expect('an outsider cannot add an item to this tenant', await run('outsider', `insert into public.items (tenant_id, owner_id, title) values ($1, $2, 'x') returning title`, [TENANT, OUTSIDER]), denied)
+    expect('an outsider cannot delete this tenant\'s items (zero rows)', await run('outsider', `delete from public.items returning id`), (r) => r.ok && r.rows.length === 0)
 
     log(failed ? `rls-test: ${failed} failed, ${passed} passed` : `rls-test: ${passed} assertions passed`)
     return { failed, passed }

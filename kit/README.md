@@ -21,16 +21,15 @@ module credential. `kit/example/` is an app made from it and the proof. Plan: `d
 | `server/hub/people-sync.ts` | The nightly reconcile of `memberships` from `lcc.people()`; no-op with `no_hub` |
 | `server/static.server.ts` | Serves `dist/client` under the entry prefix in production |
 | `server/tools/index.ts` | The empty handler registry an app fills (one file per manifest tool) |
-| `dev/dev-member.ts` | The stub edge (Vite middleware): `DEV_MEMBER`, `?as=`, cookie; refuses outside `APP_ENV=local`; strips the headers on the MCP path |
+| `dev/dev-member.ts` | Copied to the app's `tooling/` like the other two stubs. The stub edge (Vite middleware): `DEV_MEMBER`, `?as=`, cookie; refuses outside `APP_ENV=local`; strips the headers on the MCP path |
 | `dev/gateway-stub.mjs` | `serve` the keys on 38400 (LCC's `{ keys: [{kid, alg, pub}] }` shape), `call <tool> '<json>' --as owner` mints a delegated token and drives `tools/call`; `--expired`, `--bad-args`, `--replay` |
 | `dev/ai-stub.mjs` | OpenAI-shaped `/v1/chat/completions` stub on 54399, plus `/services/module/contacts` and `STUB_DENY` |
 | `tooling/security-scan.ts` + `.test.ts` | The A4 rules (14) with one failing fixture per rule |
-| `tooling/rls-test.mjs` | Owner, admin, member, viewer, a stranger, the service and anon against a throwaway backend (67 assertions on the example) |
-| `tooling/smoke.mjs`, `screenshots.mjs`, `browser.mjs` | playwright-core on Edge, `?as=` for the member |
-| `tooling/mcp.test.mjs`, `kit-drift.test.mjs` | The verifier against stub-minted tokens; the app's copies equal the kit |
+| `tooling/browser.mjs`, `kit-drift.test.mjs` | playwright-core on Edge with `?as=` for the member; the app's managed copies equal the kit |
+| `example/tooling/rls-test.mjs`, `smoke.mjs`, `screenshots.mjs`, `mcp.test.mjs` | The app's own suites, scaffolded once by `init` and then the app's: owner, admin, member, viewer, a stranger, a second tenant's owner, the service and anon against a throwaway backend (74 assertions on the example); the smoke and screen runs; the verifier against stub-minted tokens |
 | `tooling/ci.yml`, `release.mjs`, `rollback.mjs`, `build-server.mjs`, `gen-types.mjs` | CI (gate, suites, native engine), digest release, rollback (moved unchanged), the Node entry, `tinbase gen types` |
 | `module.yaml.example`, `Dockerfile`, `deploy/compose.MODULE.yaml`, `deploy/lcc-edge.MODULE.conf` | The templates (`{{slug}}`, `{{SLUG}}`) |
-| `init.mjs` | `node kit/init.mjs <slug> <dir>` copies the example as a scaffold and the managed files on top; `--sync` refreshes them; `--check` reports drift |
+| `init.mjs` | `node kit/init.mjs <slug> <dir>` copies the example as a scaffold and the managed files on top; `--sync` refreshes them; `--check` reports drift. The suites are not managed |
 
 ## Local commands (in an app, e.g. `kit/example`)
 
@@ -39,7 +38,7 @@ npm install
 npm run dev            # http://localhost:3310/modules/<slug>/ as DEV_MEMBER=owner; ?as=admin|member|viewer
 npm run gate           # typecheck && security-scan && test-rls && build
 npm test               # scanner fixtures, token verifier, kit drift
-node ../dev/gateway-stub.mjs call list_items '{}' --as owner
+node tooling/gateway-stub.mjs call list_items '{}' --as owner
 npm run smoke          # against the dev server, on Edge
 npm run gen-types      # after a migration change
 PYTHONPATH=<lcc at origin/main> python <hub-bundle>/hubctl.py validate .
@@ -73,7 +72,7 @@ PYTHONPATH=<lcc at origin/main> python <hub-bundle>/hubctl.py validate .
 
 ## Status (2026-11-04)
 
-Green on this PC (Windows, PGlite): `npm run gate` (typecheck, 14 scanner rules, 67 RLS assertions, build), `npm test`
+Green on this PC (Windows, PGlite): `npm run gate` (typecheck, 14 scanner rules, 74 RLS assertions with the cross-tenant section, build), `npm test`
 (17 scanner fixtures, 5 token tests, kit drift), `npm run dev` for all four roles, `npm run smoke` (21 checks on Edge),
 `npm run screens` (6 files), the MCP path end to end through the gateway stub (owner's rows, viewer limited, RLS
 refusing the viewer's `add_item`, expired/tampered/replayed/unknown-member refused), the built server in lab mode (401

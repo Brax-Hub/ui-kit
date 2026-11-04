@@ -7,7 +7,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import { argsSha256 as stubDigest, mint, publicEntry } from '../../dev/gateway-stub.mjs'
+import { argsSha256 as stubDigest, mint, publicEntry } from './gateway-stub.mjs'
 import { argsSha256, canonical, ReplayLog, TokenError, verifyDelegatedToken } from '../src/server/mcp/delegated-token.ts'
 
 const { privateKey } = generateKeyPairSync('ed25519')

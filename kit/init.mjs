@@ -8,8 +8,11 @@
 //
 // Managed files (the kit owns them; an app changes them only by changing the kit):
 //   kit/server/**            -> src/server/**         (except src/server/tools/** and src/server/db/database.types.ts)
-//   kit/dev/dev-member.ts    -> tooling/dev-member.ts
+//   kit/dev/*                -> tooling/*             (the stub edge, the gateway stub, the AI stub)
 //   kit/tooling/*            -> tooling/*             (ci.yml -> .github/workflows/ci.yml)
+//
+// Not managed: the app's own suites (tooling/rls-test.mjs, smoke.mjs, screenshots.mjs, mcp.test.mjs). They test the
+// app's tables and tools, so init copies the example's once as a starting point and --sync and --check leave them be.
 //   kit/Dockerfile           -> Dockerfile
 //   kit/deploy/*.MODULE.*    -> deploy/*.<slug>.*     ({{slug}} and {{SLUG}} templated)
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
@@ -42,7 +45,7 @@ function managed() {
     if (rel.startsWith('tools/')) continue
     pairs.push([join(KIT, 'server', rel), join(target, 'src', 'server', rel), false])
   }
-  pairs.push([join(KIT, 'dev', 'dev-member.ts'), join(target, 'tooling', 'dev-member.ts'), false])
+  for (const rel of walk(join(KIT, 'dev'))) pairs.push([join(KIT, 'dev', rel), join(target, 'tooling', rel), false])
   for (const rel of walk(join(KIT, 'tooling'))) {
     if (rel.includes('/')) continue
     const dest = rel === 'ci.yml' ? join(target, '.github', 'workflows', 'ci.yml') : join(target, 'tooling', rel)
