@@ -39,11 +39,12 @@ const KEY = Symbol.for('brax.tinbase.backend')
 async function boot(): Promise<TinbaseBackend> {
   const env = getEnv()
   mkdirSync(env.dataDir, { recursive: true })
-  const project = await loadSupabaseProject(env.root)
+  // The seed (demo data) loads locally and on a lab hub only; a real install (APP_ENV=hub) always starts empty.
+  const project = await loadSupabaseProject(env.root, { enabled: env.appEnv !== 'hub' })
   const log = (msg: string) => console.log(JSON.stringify({ at: new Date().toISOString(), tinbase: msg }))
   const engine = env.engine === 'native' ? await createNativeEngine({ dataDir: join(env.dataDir, 'pgdata'), cacheDir: env.pgCacheDir, log }) : undefined
   const backend = await createBackend({
-    ...project, // migrations: supabase/migrations/*.sql, seedSql: supabase/seed.sql (applied once, on an empty database)
+    ...project, // migrations: supabase/migrations/*.sql, seedSql: supabase/seed.sql (once, on an empty database; not on APP_ENV=hub)
     authEnabled: false,
     ...(engine ? { engine } : { dataDir: join(env.dataDir, 'pgdata') }),
     jwtSecret: env.jwtSecret,
