@@ -1,0 +1,88 @@
+# The gate for a Brax Business App on the hub-module stack. Copied to .github/workflows/ci.yml by kit/init.mjs.
+#   gate    typecheck, security scan, RLS test (PGlite), unit tests, build                      on every push and PR
+#   suites  the dev server with the stub edge, smoke (Edge), screenshots, the MCP path            needs gate
+#   native  the RLS test and a built-and-started server on tinbase's native Postgres 17 (Linux)   needs gate
+# Artefacts: screenshots and logs, kept 14 days.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  APP_ENV: local
+  TINBASE_ENGINE: pglite
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run gate
+      - run: npm test
+
+  suites:
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Edge for Playwright
+        run: npx playwright-core install msedge
+      - name: Dev server with the stub edge
+        run: |
+          mkdir -p dist/ci-logs
+          (npm run dev > dist/ci-logs/dev.log 2>&1 &)
+          for i in $(seq 1 60); do curl -sf "http://localhost:3310/modules/example/healthz" >/dev/null && break; sleep 1; done
+          curl -sf "http://localhost:3310/modules/example/healthz"
+      - run: npm run smoke
+      - run: BASE_URL=http://localhost:3310/modules/example node --test tooling/mcp.test.mjs
+      - run: npm run screens
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens-and-logs
+          path: |
+            dist/screens
+            dist/ci-logs
+          retention-days: 14
+
+  native:
+    needs: gate
+    runs-on: ubuntu-latest
+    env:
+      TINBASE_ENGINE: native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Postgres 17 binaries (cached by tinbase under ~/.cache/tinbase)
+        run: node -e "import('tinbase/node').then(m => m.ensurePostgres(undefined, undefined, console.log))"
+      - run: npm run test-rls
+      - run: npm run build
+      - name: The built server answers 401 without the member and 200 with it
+        run: |
+          export JWT_SECRET=ci-only-secret-0123456789abcdef0123456789 APP_ENV=lab DATA_DIR=$RUNNER_TEMP/data PORT=8080
+          (npm start > native-server.log 2>&1 &)
+          for i in $(seq 1 90); do curl -sf "http://localhost:8080/modules/example/healthz" >/dev/null && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/modules/example/)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Brax-Member-Id: ci-owner' -H 'X-Brax-Member-Name: CI%20Owner' -H 'X-Brax-Member-Role: owner' http://localhost:8080/modules/example/)" = 200
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-server-log
+          path: native-server.log
+          retention-days: 14
