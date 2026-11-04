@@ -16,7 +16,7 @@ RUN node -e "import('tinbase/node').then(m => m.ensurePostgres(undefined, '/opt/
 FROM node:22-bookworm-slim
 # What the Postgres binaries link against at run time; the Node image carries the rest.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends libssl3 zlib1g libxml2 libicu72 liblz4-1 libzstd1 libreadline8 libuuid1 \
+ && apt-get install -y --no-install-recommends libssl3 zlib1g libxml2 libicu72 liblz4-1 libzstd1 libreadline8 libuuid1 libgssapi-krb5-2 \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --gid 10001 app \
  && useradd --uid 10001 --gid app --home-dir /data --no-create-home --shell /usr/sbin/nologin app \

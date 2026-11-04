@@ -48,7 +48,8 @@ function managed() {
     const dest = rel === 'ci.yml' ? join(target, '.github', 'workflows', 'ci.yml') : join(target, 'tooling', rel)
     pairs.push([join(KIT, 'tooling', rel), dest, rel === 'ci.yml'])
   }
-  pairs.push([join(KIT, 'Dockerfile'), join(target, 'Dockerfile'), false])
+  pairs.push([join(KIT, 'Dockerfile'), join(target, 'Dockerfile'), true])
+  pairs.push([join(KIT, '.dockerignore'), join(target, '.dockerignore'), false])
   for (const rel of walk(join(KIT, 'deploy'))) pairs.push([join(KIT, 'deploy', rel), join(target, 'deploy', rel.replace('MODULE', slug)), true])
   return pairs
 }

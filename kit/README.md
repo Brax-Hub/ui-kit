@@ -14,7 +14,7 @@ module credential. `kit/example/` is an app made from it and the proof. Plan: `d
 | `server/tinbase.server.ts` | `createBackend` once per process (globalThis-cached): `authEnabled: false`, native engine on Linux/macOS, PGlite on Windows, `supabase/` migrations and seed, buckets, `FsStorageDriver`, outbox mailer, `close()` on SIGTERM. Exports `backend`, `anonKey`, `serviceRoleKey` |
 | `server/hub/identity.server.ts` | `readHubMember` (401 `hub_member_required`), `resolveMember` (upsert `memberships`; hub role on first sight and when it rises), `findMemberByHubId`, `memberToken` (the only `signJwt` call: 5-minute HS256, `sub` = memberships.id) |
 | `server/db/client.server.ts` | `memberClient(ctx)` (supabase-js over `backend.fetch` with the member bearer), `serviceClient(reason)` (logged), `anonClient()` |
-| `server/middleware/rbs.server.ts` | `requireMember()`, `requireRole(allowed)`; resolves once per request; 401/403 through `setResponseStatus` plus `AccessError` |
+| `server/middleware/rbs.ts` | `requireMember()`, `requireRole(allowed)`; resolves once per request; 401/403 through `setResponseStatus` plus `AccessError`. Not `*.server.ts`: see the contradictions |
 | `server/hub/lcc.server.ts` | mTLS client: `me`, `people`, `contacts`, `sendCard`, `createRequest`, `gatewayKeys`; `{ ok: false, reason: 'no_hub' | 'not_enabled' | 'error' | 'unreachable' }`, never throws |
 | `server/mcp/server.ts`, `delegated-token.ts`, `manifest.ts` | The MCP server at `<entry>mcp`; `tools/list` from `module.yaml`; `tools/call` behind `verifyDelegatedToken` (Ed25519, 60 s, RFC 8785 args digest, replay log, keys refreshed on an unknown kid), then the handler as the acting member |
 | `server/jobs/index.ts` | `registerJobs(backend, defs)`: `jobs` rows, `cron.schedule(name, schedule, 'select app.enqueue_job(name)')`, a poller executing queued `job_runs` under `serviceClient('job:<name>')`; `runNow(name)` |
@@ -65,13 +65,21 @@ PYTHONPATH=<lcc at origin/main> python <hub-bundle>/hubctl.py validate .
 - **A thrown `Response` in middleware** 500s during server rendering (seroval); the middleware sets the status and
   throws an `AccessError` instead.
 - **Port 54400** is inside a Windows reserved range on this PC; the gateway stub listens on 38400.
+- **`rbs.server.ts` cannot exist**: the middleware shell is part of the client bundle (the server-function chain is
+  built there) and TanStack Start's import-protection plugin refuses any `*.server.*` file that reaches the client, so
+  the file is `middleware/rbs.ts`; the compiler strips its `.server()` callbacks and the identity import with them.
+- **Playwright clicks on the dev server** wait for a navigation that never settles (Vite's HMR socket); the suites
+  click with `noWaitAfter`.
 
-## Status (2026-11-04, see the hand-over note in the side-session notes folder)
+## Status (2026-11-04)
 
-Green: `typecheck`, `security-scan` (14 rules), `test-rls` (67), `npm test` (scanner fixtures 17/17, token 5/5, drift),
-`npm run dev` for all four roles, the MCP path end to end through the stub (owner's rows, viewer limited, RLS refusing
-the viewer's `add_item`, expired/tampered/replayed/unknown-member refused), the manifest with the origin/main validator.
-Open: `npm run build` is refused by TanStack Start's import-protection plugin (`*.functions.ts` import
-`middleware/rbs.server`, which reaches the client bundle through `__root.tsx`); the smoke suite's Add click times out
-(the page serves the data; hydration or the form submit needs a look); the Dockerfile and overlay are untested (no
-Docker here).
+Green on this PC (Windows, PGlite): `npm run gate` (typecheck, 14 scanner rules, 67 RLS assertions, build), `npm test`
+(17 scanner fixtures, 5 token tests, kit drift), `npm run dev` for all four roles, `npm run smoke` (21 checks on Edge),
+`npm run screens` (6 files), the MCP path end to end through the gateway stub (owner's rows, viewer limited, RLS
+refusing the viewer's `add_item`, expired/tampered/replayed/unknown-member refused), the built server in lab mode (401
+without the headers, 200 with, assets and MCP served), the manifest with the origin/main validator (rating 7/8).
+Verified on 2026-11-04 by the reviewer: `docker build` of `kit/example` (bookworm-slim, Postgres 17.7 binaries baked
+in, `libgssapi-krb5-2` added for initdb) and a read-only run with a `/data` volume: `healthz` 200 within 5 s, 401
+without the member headers, 200 with them, 401 on `tools/call` without a token, container healthy. Not run here: the
+native engine outside Docker (Linux only; `ci.yml`'s `native` job covers it), the overlay (no
+Docker on this PC), an install on a hub.
