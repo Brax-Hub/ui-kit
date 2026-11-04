@@ -69,7 +69,11 @@ jobs:
           curl -sf http://localhost:8080/modules/{{slug}}/healthz
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/modules/{{slug}}/)" = 401
           test "$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Brax-Member-Id: release-owner' -H 'X-Brax-Member-Name: Release%20Check' -H 'X-Brax-Member-Role: owner' http://localhost:8080/modules/{{slug}}/)" = 200
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' http://localhost:8080/modules/{{slug}}/mcp)" = 401
+          # tools/list is open (it mirrors module.yaml); tools/call of a real tool needs the gateway's token. An unknown
+          # tool answers 404 before the token is read, so call the manifest's first tool.
+          tool="$(awk '/^tools:/{t=1;next} t&&/^[^ ]/{exit} t&&/^  - name:/{print $3;exit}' module.yaml)"
+          test -n "$tool"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"$tool\",\"arguments\":{}}}" http://localhost:8080/modules/{{slug}}/mcp)" = 401
           docker logs eh 2>&1 | tail -20
           docker rm -f eh
       - uses: docker/login-action@v3
