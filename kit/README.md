@@ -27,7 +27,8 @@ module credential. `kit/example/` is an app made from it and the proof. Plan: `d
 | `tooling/security-scan.ts` + `.test.ts` | The A4 rules (14) with one failing fixture per rule |
 | `tooling/browser.mjs`, `kit-drift.test.mjs` | playwright-core on Edge with `?as=` for the member; the app's managed copies equal the kit |
 | `example/tooling/rls-test.mjs`, `smoke.mjs`, `screenshots.mjs`, `mcp.test.mjs` | The app's own suites, scaffolded once by `init` and then the app's: owner, admin, member, viewer, a stranger, a second tenant's owner, the service and anon against a throwaway backend (74 assertions on the example); the smoke and screen runs; the verifier against stub-minted tokens |
-| `tooling/ci.yml`, `release.mjs`, `rollback.mjs`, `build-server.mjs`, `gen-types.mjs` | CI (gate, suites, native engine), digest release, rollback (moved unchanged), the Node entry, `tinbase gen types` |
+| `tooling/ci.yml`, `release.yml`, `release.mjs`, `rollback.mjs`, `build-server.mjs`, `gen-types.mjs` | CI (gate, screens on the fresh database, then smoke and the MCP path, native engine), the tag-triggered release to GHCR by digest with its pre-install snapshot (both `.yml` files land in `.github/workflows/`), the same release from a machine with Docker, rollback and the ledger (`record --env built` for a pushed, uninstalled image), the Node entry, `tinbase gen types` |
+| `example/tooling/app-scan.ts` | The app's own scanner rules, chained after the kit's in `npm run security-scan`; scaffolded once with one example rule |
 | `module.yaml.example`, `Dockerfile`, `deploy/compose.MODULE.yaml`, `deploy/lcc-edge.MODULE.conf` | The templates (`{{slug}}`, `{{SLUG}}`) |
 | `init.mjs` | `node kit/init.mjs <slug> <dir>` copies the example as a scaffold and the managed files on top; `--sync` refreshes them; `--check` reports drift. The suites are not managed |
 

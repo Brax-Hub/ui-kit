@@ -1,0 +1,122 @@
+# Release the module image by digest (brax-hub-module step 8; brax-rollback "What a release is").
+# On a phase-* or v* tag (or by hand with a tag): the gate, the image built from the tagged commit, a run of the image
+# (read-only, 401 without the hub's member headers, 200 with them, healthy), the push to the private GitHub container
+# registry, and the pre-install database snapshot. Nothing is installed anywhere: that is the owner's step with the hub.
+# The artefact release-<tag> holds release.json (tag, commit, image, digest) and the snapshot for docs/<app>/releases.md.
+# Record it with: node tooling/rollback.mjs record <tag> --env built --version <image@digest> --snapshot <file>
+# (later `record <tag> --env lab` fills the Lab column once the owner installs it). Managed by kit/init.mjs (source kit/tooling/release.yml).
+name: release
+on:
+  push:
+    tags: ['phase-*', 'v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: An existing tag to release (phase-N or vX.Y.Z)
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # The package must be created by this repository's own workflow: GITHUB_TOKEN cannot push to a package made
+  # earlier by hand or by another repository (it is linked to none, so the push is refused). Pick a new name instead.
+  # The owner part must be lower case; write it out if the account name has capitals.
+  IMAGE: ghcr.io/${{ github.repository_owner }}/{{slug}}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Which tag
+        id: tag
+        run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+      - name: The tagged commit (github.sha is the dispatching commit on a manual run, not the tag's)
+        id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Gate
+        run: npm run gate
+        env:
+          APP_ENV: local
+          TINBASE_ENGINE: pglite
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image (not pushed yet)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ steps.commit.outputs.sha }}
+            org.opencontainers.image.version=${{ steps.tag.outputs.tag }}
+      - name: The image runs read-only and answers only through the hub's member headers
+        run: |
+          mkdir -p "$RUNNER_TEMP/data" && chmod 777 "$RUNNER_TEMP/data"
+          docker run -d --name eh --read-only --tmpfs /tmp -v "$RUNNER_TEMP/data:/data" -p 8080:8080 \
+            -e APP_ENV=lab -e JWT_SECRET=release-check-only-0123456789abcdef0123456789 "$IMAGE:${{ steps.tag.outputs.tag }}"
+          for i in $(seq 1 90); do curl -sf http://localhost:8080/modules/{{slug}}/healthz >/dev/null && break; sleep 1; done
+          curl -sf http://localhost:8080/modules/{{slug}}/healthz
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/modules/{{slug}}/)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Brax-Member-Id: release-owner' -H 'X-Brax-Member-Name: Release%20Check' -H 'X-Brax-Member-Role: owner' http://localhost:8080/modules/{{slug}}/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' http://localhost:8080/modules/{{slug}}/mcp)" = 401
+          docker logs eh 2>&1 | tail -20
+          docker rm -f eh
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push and read the digest the registry assigned
+        id: push
+        run: |
+          docker push "$IMAGE:${{ steps.tag.outputs.tag }}"
+          ref="$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:${{ steps.tag.outputs.tag }}")"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "digest=${ref#*@}" >> "$GITHUB_OUTPUT"
+      - name: The database before the first install (an empty Postgres 17 cluster), as a pg_dump custom-format snapshot
+        id: snapshot
+        run: |
+          PG="$(node -e "import('tinbase/node').then(async (m) => console.log(await m.ensurePostgres()))" | tail -1)"
+          BIN="$PG/bin"; [ -x "$BIN/pg_dump" ] || BIN="$(dirname "$(find "$PG" -name pg_dump -type f | head -1)")"
+          "$BIN/initdb" -D "$RUNNER_TEMP/pg" -U postgres --auth=trust >/dev/null
+          "$BIN/pg_ctl" -D "$RUNNER_TEMP/pg" -o "-k $RUNNER_TEMP -p 54329 -c listen_addresses=''" -w start >/dev/null
+          mkdir -p snapshots
+          name="snapshots/$(date -u +%Y%m%d-%H%M%S)-${{ steps.tag.outputs.tag }}-before-first-install.dump"
+          "$BIN/pg_dump" -h "$RUNNER_TEMP" -p 54329 -U postgres -Fc -d postgres -f "$name"
+          "$BIN/pg_restore" --list "$name" >/dev/null
+          "$BIN/pg_ctl" -D "$RUNNER_TEMP/pg" -w stop >/dev/null
+          echo "file=$name" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$name" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Release record
+        run: |
+          cat > release.json <<EOF
+          { "tag": "${{ steps.tag.outputs.tag }}", "commit": "$(git rev-parse HEAD)", "image": "${{ steps.push.outputs.ref }}", "digest": "${{ steps.push.outputs.digest }}", "snapshot": "${{ steps.snapshot.outputs.file }}", "snapshot_sha256": "${{ steps.snapshot.outputs.sha256 }}" }
+          EOF
+          cat release.json
+          {
+            echo "### Release ${{ steps.tag.outputs.tag }}"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Commit | \`$(git rev-parse --short HEAD)\` |"
+            echo "| Image | \`${{ steps.push.outputs.ref }}\` |"
+            echo "| Snapshot | \`${{ steps.snapshot.outputs.file }}\` (sha256 \`${{ steps.snapshot.outputs.sha256 }}\`) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.tag.outputs.tag }}
+          path: |
+            release.json
+            snapshots/
+          retention-days: 90

@@ -9,7 +9,7 @@
 // Managed files (the kit owns them; an app changes them only by changing the kit):
 //   kit/server/**            -> src/server/**         (except src/server/tools/** and src/server/db/database.types.ts)
 //   kit/dev/*                -> tooling/*             (the stub edge, the gateway stub, the AI stub)
-//   kit/tooling/*            -> tooling/*             (ci.yml -> .github/workflows/ci.yml)
+//   kit/tooling/*            -> tooling/*             (*.yml -> .github/workflows/, {{slug}} templated)
 //
 // Not managed: the app's own suites (tooling/rls-test.mjs, smoke.mjs, screenshots.mjs, mcp.test.mjs). They test the
 // app's tables and tools, so init copies the example's once as a starting point and --sync and --check leave them be.
@@ -48,8 +48,9 @@ function managed() {
   for (const rel of walk(join(KIT, 'dev'))) pairs.push([join(KIT, 'dev', rel), join(target, 'tooling', rel), false])
   for (const rel of walk(join(KIT, 'tooling'))) {
     if (rel.includes('/')) continue
-    const dest = rel === 'ci.yml' ? join(target, '.github', 'workflows', 'ci.yml') : join(target, 'tooling', rel)
-    pairs.push([join(KIT, 'tooling', rel), dest, rel === 'ci.yml'])
+    const workflow = rel.endsWith('.yml')
+    const dest = workflow ? join(target, '.github', 'workflows', rel) : join(target, 'tooling', rel)
+    pairs.push([join(KIT, 'tooling', rel), dest, workflow])
   }
   pairs.push([join(KIT, 'Dockerfile'), join(target, 'Dockerfile'), true])
   pairs.push([join(KIT, '.dockerignore'), join(target, '.dockerignore'), false])

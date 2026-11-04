@@ -45,9 +45,10 @@ jobs:
           (npm run dev > dist/ci-logs/dev.log 2>&1 &)
           for i in $(seq 1 60); do curl -sf "http://localhost:3310/modules/example/healthz" >/dev/null && break; sleep 1; done
           curl -sf "http://localhost:3310/modules/example/healthz"
+      # Screens first, on the freshly seeded database, so the smoke run's rows never appear in them.
+      - run: npm run screens
       - run: npm run smoke
       - run: BASE_URL=http://localhost:3310/modules/example node --test tooling/mcp.test.mjs
-      - run: npm run screens
       - uses: actions/upload-artifact@v4
         if: always()
         with:

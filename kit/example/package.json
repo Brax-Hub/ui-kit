@@ -11,7 +11,7 @@
     "start": "node dist/server/index.js",
     "routes": "tsr generate",
     "typecheck": "tsc --noEmit",
-    "security-scan": "node tooling/security-scan.ts",
+    "security-scan": "node tooling/security-scan.ts && node tooling/app-scan.ts",
     "test-rls": "node tooling/rls-test.mjs",
     "test": "node --test tooling/security-scan.test.ts tooling/mcp.test.mjs tooling/kit-drift.test.mjs",
     "gate": "npm run typecheck && npm run security-scan && npm run test-rls && npm run build",

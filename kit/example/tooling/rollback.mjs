@@ -2,7 +2,7 @@
 // or records a new row. Node 22+, no dependencies. Prints the commands; runs them only with --yes, stops at the first failure.
 // Usage:
 //   node tooling/rollback.mjs [rollback] <tag> --env lab|local [--yes] [--branch] [--app <dir>] [--ledger <file>]
-//   node tooling/rollback.mjs record <tag> --env lab|production --version <id> --snapshot <file> [--notes <text>]
+//   node tooling/rollback.mjs record <tag> --env lab|production|built --version <id> --snapshot <file> [--notes <text>]
 //        [--app <dir>] [--ledger <file>]
 // Ledger: docs/<app>/releases.md (<app> = package.json name of --app without the "brax-" prefix, default dir = cwd).
 // --env production additionally needs --yes --i-know. Lab and production restores read LAB_DATABASE_URL and
@@ -15,7 +15,7 @@ import path from 'node:path'
 
 const USAGE = `Usage:
   node tooling/rollback.mjs [rollback] <tag> --env lab|local [--yes] [--branch] [--app <dir>] [--ledger <file>]
-  node tooling/rollback.mjs record <tag> --env lab|production --version <id> --snapshot <file> [--notes <text>]
+  node tooling/rollback.mjs record <tag> --env lab|production|built --version <id> --snapshot <file> [--notes <text>]
   --env production needs --yes --i-know, a fresh snapshot and the owner's go. Without --yes nothing is run.`
 const HEADER = [
   '| Date | Tag | Commit | Snapshot | Lab version | Production version | Notes |',
@@ -37,7 +37,8 @@ const mode = args._[0] === 'record' ? 'record' : 'rollback'
 const tag = args._[0] === 'record' || args._[0] === 'rollback' ? args._[1] : args._[0]
 if (!tag) fail('missing <tag>\n' + USAGE)
 const env = args.env ?? fail('missing --env lab|local|production')
-if (!['lab', 'local', 'production'].includes(env)) fail('--env must be lab, local or production')
+if (!['lab', 'local', 'production', 'built'].includes(env)) fail('--env must be lab, local, production or built')
+if (env === 'built' && mode === 'rollback') fail('--env built is for record only; roll back on lab, local or production')
 if (env === 'production' && mode === 'rollback' && !(args.yes && args['i-know'])) fail('--env production needs --yes --i-know')
 
 const appDir = path.resolve(args.app ?? '.')
@@ -48,8 +49,11 @@ app = app.replace(/^brax-/, '')
 const ledger = path.resolve(args.ledger ?? path.join('docs', app, 'releases.md'))
 
 if (mode === 'record') {
-  if (!['lab', 'production'].includes(env)) fail('record needs --env lab or production')
+  // --env built: the image is pushed but installed nowhere yet; the digest goes in Notes, both columns stay empty,
+  // and a later `record <tag> --env lab` fills the Lab column of the same row.
+  if (!['lab', 'production', 'built'].includes(env)) fail('record needs --env lab, production or built')
   if (!args.version || !args.snapshot) fail('record needs --version <id> and --snapshot <file>')
+  if (env === 'built') args.notes = `Built ${args.version}, not installed.` + (args.notes ? ' ' + args.notes : '')
   const rev = (ref) => spawnSync('git', ['rev-parse', '--short', ref], { cwd: appDir, encoding: 'utf8' })
   const commit = [tag + '^{commit}', 'HEAD'].map(rev).find((r) => r.status === 0)?.stdout.trim() || 'unknown'
   const date = new Date().toISOString().slice(0, 10)
@@ -62,8 +66,10 @@ if (mode === 'record') {
     .findLastIndex((c, i) => lines[i].trim().startsWith('|') && c[1] === tag)
   if (at >= 0) { // same tag again (other environment): fill that column in the existing row
     const old = lines[at].trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim())
-    const col = env === 'lab' ? 4 : 5
-    const merged = old.map((c, i) => (i === col ? args.version : i === 6 && args.notes ? args.notes : c))
+    const col = env === 'lab' ? 4 : env === 'production' ? 5 : -1
+    // Installing a release that was only built drops the "not installed" note unless new notes are given.
+    const notes = args.notes ?? (col >= 0 ? old[6]?.replace(/^Built \S+, not installed\.\s*/, '') : undefined)
+    const merged = old.map((c, i) => (i === col ? args.version : i === 6 && notes !== undefined ? notes : c))
     lines[at] = '| ' + merged.join(' | ') + ' |'
     writeFileSync(ledger, lines.join('\n'))
   } else appendFileSync(ledger, (text.endsWith('\n') ? '' : '\n') + '| ' + cells.join(' | ') + ' |\n')
