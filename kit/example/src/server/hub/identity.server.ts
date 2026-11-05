@@ -91,7 +91,7 @@ export async function resolveMember(member: HubMember): Promise<MemberContext> {
   if (readError) throw new Error(`memberships read failed: ${readError.message}`)
   if (!existing) {
     const { data: tenant, error: tenantError } = await service.from('tenants').select('id').limit(1).maybeSingle()
-    if (tenantError || !tenant) throw new Error('no tenants row: the seed or the first migration must create the hub tenant')
+    if (tenantError || !tenant) throw new Error('no tenants row: a migration must create the hub tenant (APP_ENV=hub skips seed.sql)')
     const { data: inserted, error: insertError } = await service
       .from('memberships')
       .insert({ tenant_id: tenant.id, hub_member_id: member.hubMemberId, name: member.name, hub_role: member.hubRole, role: member.hubRole, status: 'active', last_seen_at: now })

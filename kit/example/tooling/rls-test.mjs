@@ -168,7 +168,31 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
   }
 }
 
+/** A real install (APP_ENV=hub) skips the seed: the migrations alone must give exactly one tenant and no demo rows. */
+export async function runEmptyHubTest({ root = process.cwd(), log = console.log } = {}) {
+  const dir = mkdtempSync(join(tmpdir(), 'brax-empty-hub-'))
+  const project = await loadSupabaseProject(root, { enabled: false })
+  const native = process.env.TINBASE_ENGINE === 'native'
+  const engine = native ? await createNativeEngine({ dataDir: join(dir, 'pgdata'), cacheDir: process.env.TINBASE_PG_CACHE_DIR || undefined }) : undefined
+  const backend = await createBackend({ ...project, authEnabled: false, ...(engine ? { engine } : { dataDir: join(dir, 'pgdata') }), jwtSecret: 'rls-test-throwaway-secret-0123456789abcdef' })
+  await backend.cron.stop()
+  const problems = []
+  try {
+    if (backend.db.migrationFailure) throw new Error(`migration ${backend.db.migrationFailure.name} failed: ${backend.db.migrationFailure.error}`)
+    const n = async (table) => Number((await backend.db.query(`select count(*) as n from public.${table}`)).rows[0].n)
+    if ((await n('tenants')) !== 1) problems.push(`tenants: ${await n('tenants')}, want 1 (create the hub tenant in a migration, not in seed.sql)`)
+    for (const table of ['memberships', 'items']) if ((await n(table)) !== 0) problems.push(`${table}: ${await n(table)} rows without the seed, want 0`)
+    for (const p of problems) log(`FAIL  empty hub ${p}`)
+    log(problems.length ? `empty-hub: ${problems.length} failed` : 'empty-hub: one tenant, no demo rows')
+    return { failed: problems.length }
+  } finally {
+    await backend.close()
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
 if (process.argv[1] && /rls-test\.mjs$/.test(process.argv[1].replace(/\\/g, '/'))) {
   const { failed } = await runRlsTest()
-  process.exit(failed ? 1 : 0)
+  const empty = await runEmptyHubTest()
+  process.exit(failed || empty.failed ? 1 : 0)
 }
