@@ -64,7 +64,12 @@ if (mode === 'record') {
   const lines = text.split(/\r?\n/)
   const at = lines.map((l) => l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim()))
     .findLastIndex((c, i) => lines[i].trim().startsWith('|') && c[1] === tag)
-  if (at >= 0) { // same tag again (other environment): fill that column in the existing row
+  if (at >= 0 && env === 'built') { // the tag was built again (or first recorded in the wrong column): the row is replaced
+    const old = lines[at].trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim())
+    if (old[4] || old[5]) console.warn(`note: ${tag} was recorded as installed (${old[4] || old[5]}); the row now says built, not installed`)
+    lines[at] = '| ' + cells.join(' | ') + ' |'
+    writeFileSync(ledger, lines.join('\n'))
+  } else if (at >= 0) { // same tag again (other environment): fill that column in the existing row
     const old = lines[at].trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim())
     const col = env === 'lab' ? 4 : env === 'production' ? 5 : -1
     // Installing a release that was only built drops the "not installed" note unless new notes are given.

@@ -14,7 +14,7 @@
 // Not managed: the app's own suites (tooling/rls-test.mjs, smoke.mjs, screenshots.mjs, mcp.test.mjs). They test the
 // app's tables and tools, so init copies the example's once as a starting point and --sync and --check leave them be.
 //   kit/Dockerfile           -> Dockerfile
-//   kit/deploy/*.MODULE.*    -> deploy/*.<slug>.*     ({{slug}} and {{SLUG}} templated)
+//   kit/deploy/*.MODULE.*    -> deploy/*.<slug>.*     ({{slug}}, {{slug_}} (hyphens to underscores) and {{SLUG}} templated)
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -58,7 +58,7 @@ function managed() {
   return pairs
 }
 
-const template = (text) => text.replace(/\{\{slug\}\}/g, slug).replace(/\{\{SLUG\}\}/g, SLUG)
+const template = (text) => text.replace(/\{\{slug\}\}/g, slug).replace(/\{\{slug_\}\}/g, slug.replace(/-/g, '_')).replace(/\{\{SLUG\}\}/g, SLUG)
 const expected = (source, templated) => (templated ? template(readFileSync(source, 'utf8')) : readFileSync(source, 'utf8'))
 
 if (mode === 'init') {
