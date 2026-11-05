@@ -6,8 +6,11 @@
 #   docker compose -f compose.yaml -f compose.lcc.yaml ... -f compose.example.yaml up -d example
 #
 # .env: EXAMPLE_IMAGE (written by tooling/release.mjs, pinned by digest), HUB_DOMAIN.
-# secrets/example-jwt-secret: a random secret of at least 32 characters, root-owned, 0600 (openssl rand -base64 48).
-# modules/example/credential: what `hubctl.py install` wrote (module.key, module.crt, root.crt, module.json).
+# secrets/example-jwt-secret: a random secret of at least 32 characters (openssl rand -base64 48), and
+# modules/example/credential: what `hubctl.py install` wrote (module.key, module.crt, root.crt, module.json). The
+# container runs as uid 10001 (`app`), so both belong to 10001: files 0400, the credential directory 0500.
+# APP_ENV: hub starts empty (no demo seed); a test hub may say lab to load supabase/seed.sql on an empty database.
+# The image is private on GHCR: the host (or the hub release's staging) needs read access to the package.
 services:
   example:
     image: ${EXAMPLE_IMAGE:?hub-release.yaml components.example, pinned by digest}
@@ -39,11 +42,11 @@ services:
     networks:
       example: {}
 
-  # The tool gateway (compose.bridge-assistant.yaml) reaches module.yaml mcp.url on this network; without the
-  # assistant overlay the service does not exist and this block is dropped by hand.
-  tool-gateway:
-    networks:
-      example: {}
+  # The tool gateway (compose.bridge-assistant.yaml) reaches module.yaml mcp.url on this network. Only on a hub that
+  # also runs the assistant overlay: there, uncomment these lines; elsewhere compose refuses a half-defined service.
+  # tool-gateway:
+  #   networks:
+  #     example: {}
 
 secrets:
   example-jwt-secret:
