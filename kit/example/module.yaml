@@ -1,0 +1,58 @@
+# The example's manifest (validator 0.2.0: lcc app/module_manifest.py at origin/main; BRAX-HUB-MODULES.md section 2;
+# CONTRACT-AI-0.1 section 23.3). Unknown keys are refused at validation and at install.
+manifest_version: 1
+slug: example
+name: Brax Example
+version: 0.1.0
+description: The kit's example app, a Brax Business App running as a hub module on tinbase.
+kind: service
+stage: experimental
+min_platform: "0.1"
+documentation: https://github.com/Brax-Hub/brax-business-app
+# people.read for the nightly people sync; chat.send for cards; requests.create for questions to the owner.
+scopes: [people.read, chat.send, requests.create]
+surfaces:
+  service:
+    # Pinned by digest by tooling/release.mjs; the all-zero digest is a placeholder no registry serves.
+    image: ghcr.io/brax-hub/brax-example@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    ingress:
+      port: 8080
+      entry: /modules/example/
+      panel: { title: Example, icon: list-checks, audience: members }
+    apparmor: true
+    user: app
+# The module's MCP server, on the module network: the tool gateway calls it with a delegated token per call.
+mcp: { url: http://example:8080/modules/example/mcp }
+tools:
+  - name: list_items
+    description: The items the acting member may see, newest first.
+    side_effect: false
+    ceiling: auto
+    scopes: [people.read]
+    version: 1
+    parameters:
+      type: object
+      properties:
+        query: { type: string, description: Only items whose title contains this text. }
+        limit: { type: integer, minimum: 1, maximum: 100 }
+      additionalProperties: false
+  - name: add_item
+    description: Add an item owned by the acting member.
+    side_effect: true
+    ceiling: confirm
+    scopes: [people.read]
+    version: 1
+    parameters:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        notes: { type: string }
+        visibility: { type: string, enum: [team, private] }
+      required: [title]
+      additionalProperties: false
+cards:
+  - { id: item_added, tool: add_item, kind: result, template: cards/item-added.json }
+backup: hot
+backup_exclude: ["pgdata/pg_wal/**", "outbox/**"]
+options: { items_per_page: 50 }
+schema: { items_per_page: "int(10,200)" }

@@ -1,0 +1,14 @@
+# Keep the host's dependencies and build output out of the image: `npm ci` in the build stage installs Linux binaries,
+# and a Windows node_modules copied over them leaves .bin shims that exec node.exe.
+node_modules
+dist
+.data
+.git
+.github
+.tanstack
+.nitro
+.output
+*.log
+.env
+.env.*
+deploy
