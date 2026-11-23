@@ -3,7 +3,7 @@
 What every Brax Business App copies to run as a Brax Hub module on tinbase: one Node 22 process, no login of its own
 (the hub's edge names the member in three headers), data in tinbase (Supabase-shaped Postgres 17 embedded in the
 process, never on a port), tools for AI through the hub's tool gateway over MCP, and LCC reached over mTLS with the
-module credential. `kit/example/` is an app made from it and the proof. Plan: `docs/entity-hub/module-implementation-plan.md`
+module credential. `kit/example/` is an app made from it and the proof. Plan: `docs/entity-hub/module-implementation-plan.md` in `dominic8686/brax-business-app`
 (A3, A4). Status and the open items are at the bottom.
 
 ## Files

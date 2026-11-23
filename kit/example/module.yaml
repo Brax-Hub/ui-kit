@@ -8,7 +8,7 @@ description: The kit's example app, a Brax Business App running as a hub module 
 kind: service
 stage: experimental
 min_platform: "0.1"
-documentation: https://github.com/Brax-Hub/brax-business-app
+documentation: https://github.com/Brax-Hub/ui-kit
 # people.read for the nightly people sync; chat.send for cards; requests.create for questions to the owner.
 scopes: [people.read, chat.send, requests.create]
 surfaces:
