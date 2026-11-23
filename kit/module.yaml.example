@@ -1,0 +1,74 @@
+# module.yaml for a Brax Business App as a hub module. Validator 0.2.0 (lcc app/module_manifest.py at origin/main;
+# BRAX-HUB-MODULES.md section 2; CONTRACT-AI-0.1 section 23.3). Unknown keys are refused at validation and install.
+# Check before every release:  PYTHONPATH=<lcc checkout> python <hub-bundle>/hubctl.py validate <app dir>
+#
+# Top-level keys the validator knows: manifest_version, slug, name, version, description, kind, scopes, documentation,
+# issue_tracker, codeowners, min_platform, stage, surfaces, options, schema, backup, backup_exclude, dependencies,
+# after_dependencies, mcp, tools, cards, redact.
+manifest_version: 1
+slug: {{slug}}                      # ^[a-z][a-z0-9_-]{1,31}$ and not a shell slug; the principal is mod-{{slug}}
+name: Brax {{slug}}
+version: 0.1.0                      # parseable: 1.2.3, 2026.9.1, 1.0-beta1
+description: What this module does, in one sentence (up to 512 characters).
+kind: service                       # service | agent (a principal that acts) | app (phone only) | link (hosted web app)
+stage: experimental                 # stable (default) | experimental | deprecated
+min_platform: "0.1"
+documentation: https://github.com/Brax-Hub/{{slug}}
+issue_tracker: https://github.com/Brax-Hub/{{slug}}/issues
+# The 21 scopes (CONTRACT-AI-0.1 section 23.1; * elevated, needs the owner; + personal, needs the member's consent):
+#   people.read  policy.read  policy.write*  policy.override*  devices.command*  devices.locate*+  telemetry.read+
+#   geofence.read+  requests.create  requests.answer  contacts.read+  chat.send  chat.rooms  push.send  files.share*
+#   mail.read+  mail.send*  ai.generate  calendar.read+  calendar.write+  calling.place*
+# An admin may install people.read, policy.read, requests.create, chat.send, chat.rooms, push.send, ai.generate; any
+# other scope makes the install a module_install request for the owner. Declare only what the app calls.
+scopes: [people.read, chat.send, requests.create]
+surfaces:
+  service:
+    # Pinned by digest by tooling/release.mjs; a tag deploys nothing on a fleet hub.
+    image: ghcr.io/brax-hub/{{slug}}@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    ingress:
+      port: 8080
+      entry: /modules/{{slug}}/
+      # audience members: a tab for every member; audience owner: an add-on under Hub admin. Up to 8 `panels` with paths.
+      panel: { title: {{slug}}, icon: list-checks, audience: members }
+    apparmor: true
+    user: app                       # never root
+# tools and mcp come together or not at all. The gateway compares tools/list from this URL with `tools` below.
+mcp: { url: http://{{slug}}:8080/modules/{{slug}}/mcp }
+tools:
+  # name ^[a-z][a-z0-9_]{0,47}$, registered as {{slug}}__<name> (64 characters at most); auto is refused with
+  # side_effect: true; scopes must be a non-empty subset of the manifest's; parameters is the JSON Schema the MCP
+  # server lists as inputSchema; bump version when parameters change (the delegated token binds it).
+  - name: list_things
+    description: The things the acting member may see.
+    side_effect: false
+    ceiling: auto
+    scopes: [people.read]
+    version: 1
+    parameters:
+      type: object
+      properties:
+        query: { type: string }
+      additionalProperties: false
+  - name: add_thing
+    description: Add a thing owned by the acting member.
+    side_effect: true
+    ceiling: confirm                # the gateway waits for a tool_confirm approval before the call reaches the module
+    scopes: [people.read]
+    version: 1
+    parameters:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+      required: [title]
+      additionalProperties: false
+# Cards the module ships (kinds info | choice | result | form | status); a module may send info, result and status.
+cards:
+  - { id: thing_added, tool: add_thing, kind: result, template: cards/thing-added.json }
+# What the module's records must never show: a subset of location, contacts.
+redact: []
+backup: hot                         # hot (default) | cold | none
+backup_exclude: ["pgdata/pg_wal/**", "outbox/**"]
+# Supervisor's option language: str(1,64), int(0,24)?, password, list(a|b), bool, nested maps; every option in schema.
+options: { items_per_page: 50 }
+schema: { items_per_page: "int(10,200)" }

@@ -1,0 +1,47 @@
+{
+  "name": "brax-example",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The kit's example app: a Brax Business App running as a hub module on tinbase.",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "dev": "vite dev --port 3310",
+    "build": "vite build && node tooling/build-server.mjs",
+    "start": "node dist/server/index.js",
+    "routes": "tsr generate",
+    "typecheck": "tsc --noEmit",
+    "security-scan": "node tooling/security-scan.ts && node tooling/app-scan.ts",
+    "test-rls": "node tooling/rls-test.mjs",
+    "test": "node --test tooling/security-scan.test.ts tooling/mcp.test.mjs tooling/kit-drift.test.mjs",
+    "gate": "npm run typecheck && npm run security-scan && npm run test-rls && npm run build",
+    "gen-types": "node tooling/gen-types.mjs",
+    "gateway": "node tooling/gateway-stub.mjs serve",
+    "ai-stub": "node tooling/ai-stub.mjs",
+    "smoke": "node tooling/smoke.mjs",
+    "screens": "node tooling/screenshots.mjs",
+    "release": "node tooling/release.mjs",
+    "rollback": "node tooling/rollback.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-start": "^1.169.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "srvx": "^1.0.8",
+    "tinbase": "0.22.2",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tanstack/router-cli": "^1.167.46",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "playwright-core": "^1.64.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5"
+  }
+}

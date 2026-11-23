@@ -1,0 +1,61 @@
+# example as a hub module (BRAX-HUB-MODULES.md; brax-hub-module step 7): the overlay a hub appends, modelled on
+# hub-bundle compose.bridge-vault.yaml. One container, tinbase inside (no database sidecar), reached only through
+# lcc-edge on the internal example network that only these two join (and the tool gateway, for the MCP server), so
+# the member headers it trusts can come from nowhere else. Nothing is published.
+#
+#   docker compose -f compose.yaml -f compose.lcc.yaml ... -f compose.example.yaml up -d example
+#
+# .env: EXAMPLE_IMAGE (written by tooling/release.mjs, pinned by digest), HUB_DOMAIN.
+# secrets/example-jwt-secret: a random secret of at least 32 characters (openssl rand -base64 48), and
+# modules/example/credential: what `hubctl.py install` wrote (module.key, module.crt, root.crt, module.json). The
+# container runs as uid 10001 (`app`), so both belong to 10001: files 0400, the credential directory 0500.
+# APP_ENV: hub starts empty (no demo seed); a test hub may say lab to load supabase/seed.sql on an empty database.
+# The image is private on GHCR: the host (or the hub release's staging) needs read access to the package.
+services:
+  example:
+    image: ${EXAMPLE_IMAGE:?hub-release.yaml components.example, pinned by digest}
+    restart: unless-stopped
+    environment:
+      APP_ENV: hub
+      DATA_DIR: /data
+      JWT_SECRET_FILE: /run/secrets/example-jwt-secret
+      LCC_URL: https://lcc-edge:8443
+      LCC_TLS_NAME: ${HUB_DOMAIN:?the hub name}
+      MODULE_CREDENTIAL_DIR: /credential
+      TINBASE_ENGINE: native
+      TINBASE_PG_CACHE_DIR: /opt/tinbase-pg
+    secrets:
+      - example-jwt-secret
+    volumes:
+      - example-data:/data
+      - ./modules/example/credential:/credential:ro
+    networks: [example]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    pids_limit: 256
+
+  lcc-edge:
+    networks:
+      example: {}
+
+  # The tool gateway (compose.bridge-assistant.yaml) reaches module.yaml mcp.url on this network. Only on a hub that
+  # also runs the assistant overlay: there, uncomment these lines; elsewhere compose refuses a half-defined service.
+  # tool-gateway:
+  #   networks:
+  #     example: {}
+
+secrets:
+  example-jwt-secret:
+    file: ./secrets/example-jwt-secret
+
+networks:
+  # lcc-edge -> example (8080) and tool-gateway -> example (8080) only.
+  example:
+    internal: true
+
+volumes:
+  example-data:
