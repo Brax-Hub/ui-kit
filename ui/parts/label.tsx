@@ -19,3 +19,9 @@ export function Field({ className, ...props }: React.ComponentProps<"div">) {
 export function FieldError({ className, ...props }: React.ComponentProps<"p">) {
   return <p role="alert" className={cn("text-body text-risk", className)} {...props} />;
 }
+
+/* The quiet line under a field that explains it: the prototype's meta text (.meta, hub.css 198: 12px, ink-3), as the
+   Components page sets it under the sheet's "General access" ("Only the people above can open it."). */
+export function HelpText({ className, ...props }: React.ComponentProps<"p">) {
+  return <p data-slot="help-text" className={cn("text-small text-ink-3", className)} {...props} />;
+}

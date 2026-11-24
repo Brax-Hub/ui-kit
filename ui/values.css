@@ -147,6 +147,7 @@
   --type-h2: 22px;          /* hub.css 177 page title, Components section titles */
   --type-h1-page: 24px;     /* admin.css 7: the page title of Your account and Hub admin */
   --type-h2-section: 17px;  /* admin.css 11: a section title on those pages */
+  --type-count: 28px;       /* admin.css 81: a count in the display face, tabular, 0.02em */
   --type-h1: 44px;          /* Components page title */
   --leading: 1.5;           /* hub.css 70 */
   --leading-heading: 1.08;    /* Components h1 */
@@ -160,6 +161,7 @@
   --letter-title: -0.01em;  /* hub.css 75 headings */
   --letter-row-title: 0.01em; /* hub.css 197 row title */
   --letter-h3: 0.02em;      /* hub.css 215 sheet title */
+  --letter-count: 0.02em;   /* admin.css 81 */
 
   /* ---- spacing ---- */
   --space: 4px;             /* the step; every gap and padding of the prototype is a multiple of 2px, most of 4px (HUB-SHELL §2.5 "4 px spacing") */

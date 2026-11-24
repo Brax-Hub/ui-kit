@@ -79,6 +79,7 @@
   --text-h1--line-height: var(--leading-heading);
   --text-h1-page: var(--type-h1-page);
   --text-h2-section: var(--type-h2-section);
+  --text-count: var(--type-count);
   --leading-body: var(--leading);
   --leading-heading: var(--leading-heading);
 
@@ -91,6 +92,7 @@
   --tracking-title: var(--letter-title);
   --tracking-row-title: var(--letter-row-title);
   --tracking-h3: var(--letter-h3);
+  --tracking-count: var(--letter-count);
 
   /* spacing: p-4 is four steps (16px); the named sizes give h-control, w-rail, size-dot … */
   --spacing: var(--space);

@@ -31,6 +31,10 @@ export const buttonVariants = cva(
         "icon-sm": "size-control-sm px-0 text-small",
       },
     },
+    compoundVariants: [
+      // the link is bare text (hub.css 114): no height, padding or gap whatever the size says
+      { variant: "link", className: "h-auto gap-0 px-0 text-small" },
+    ],
     defaultVariants: { variant: "secondary", size: "md" },
   },
 );

@@ -29,6 +29,18 @@ test("every part the four apps use exists in ui/parts", () => {
   assert.deepEqual(unexported, [], "parts/index.ts leaves a part out");
 });
 
+/* Parts an app imports by name from inside one of those files (Entity Hub's input.tsx and card.tsx). */
+const usedByName = { "label.tsx": ["HelpText"], "card.tsx": ["StatTile"], "badge.tsx": ["Badge", "Tag", "CountBadge"], "alert.tsx": ["Alert", "EmptyState"] };
+
+test("every part an app imports by name is exported", () => {
+  const missing = [];
+  for (const [file, names] of Object.entries(usedByName)) {
+    const src = readFileSync(join(root, "parts", file), "utf8");
+    for (const n of names) if (!new RegExp(`export (function|const) ${n}\\b`).test(src)) missing.push(`${file}: ${n}`);
+  }
+  assert.deepEqual(missing, []);
+});
+
 test("every section of the parts page renders to markup", async () => {
   // inside node_modules so that the bundle resolves react from the kit's own install (and git ignores it)
   const dir = join(root, "node_modules", ".cache", "ui-parts");

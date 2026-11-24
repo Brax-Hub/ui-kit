@@ -1,6 +1,6 @@
 /* The sections of the parts page (parts.html): one per part or group of parts, each naming the prototype section it
    is compared with. The render test (test/parts.test.mjs) renders every one to static markup without a browser. */
-import { Bell, Folder, Grid3x3, Pencil, Search, Share, Trash2, WifiOff } from "lucide-react";
+import { AlarmClock, Bell, Building2, CalendarClock, Folder, Grid3x3, Pencil, Search, Share, Trash2, WifiOff } from "lucide-react";
 import type { ComponentType } from "react";
 import {
   Alert, AlertDescription, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
@@ -8,9 +8,9 @@ import {
   Checkbox, Chip, Collapsible, CollapsibleContent, CollapsibleTrigger,
   Copyable, CountBadge, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DropdownMenu,
   DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger, EmptyState, Fact, FactGrid, Field,
-  FieldError, IconButton, Input, Kbd, KeyValue, KeyValueList, Label, Link, Meter, PageHeader, Popover, PopoverContent, PopoverTrigger, Progress, ResizableGroup,
+  FieldError, HelpText, IconButton, Input, Kbd, KeyValue, KeyValueList, Label, Link, Meter, PageHeader, Popover, PopoverContent, PopoverTrigger, Progress, ResizableGroup,
   ResizableHandle, ResizablePanel, Section, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Sheet, SheetBody, SheetContent, SheetHeader,
-  SheetTitle, SheetTrigger, Skeleton, SkeletonRows, Slider, Switch, TBody, TD, TH, THead, TR, Table, TableFrame, Tabs, TabsContent, TabsList, TabsTrigger, Tag,
+  SheetTitle, SheetTrigger, Skeleton, SkeletonRows, Slider, StatTile, Switch, TBody, TD, TH, THead, TR, Table, TableFrame, Tabs, TabsContent, TabsList, TabsTrigger, Tag,
   Textarea, Toaster, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipProvider, toast,
 } from "../parts/index.ts";
 
@@ -46,7 +46,7 @@ export const sections: SectionDef[] = [
   },
   {
     title: "Fields and controls",
-    parts: "input, textarea, select, label (Label, Field, FieldError), checkbox (Checkbox, CheckField), switch",
+    parts: "input, textarea, select, label (Label, Field, FieldError, HelpText), checkbox (Checkbox, CheckField), switch",
     prototype: "Fields and controls",
     render: () => (
       <div className="flex flex-col gap-4">
@@ -61,7 +61,7 @@ export const sections: SectionDef[] = [
               <SelectContent><SelectItem value="editor">Editor</SelectItem><SelectItem value="commenter">Commenter</SelectItem><SelectItem value="viewer">Viewer</SelectItem></SelectContent>
             </Select>
           </Field>
-          <Field className="col-span-2"><Label htmlFor="p-note">Note</Label><Textarea id="p-note" placeholder="What changed" /></Field>
+          <Field className="col-span-2"><Label htmlFor="p-note">Note</Label><Textarea id="p-note" placeholder="What changed" /><HelpText>The submission or receipt number the authority gave.</HelpText></Field>
         </div>
         <Row>
           <Switch defaultChecked aria-label="On" /><Switch aria-label="Off" />
@@ -236,8 +236,14 @@ export const sections: SectionDef[] = [
   },
   {
     title: "Cards",
-    parts: "card (Card, CardHeader, CardTitle, CardDescription, CardBody or CardContent, CardFooter)",
+    parts: "card (Card, CardHeader, CardTitle, CardDescription, CardBody or CardContent, CardFooter, StatTile)",
     render: () => (
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-3 gap-4">
+          <StatTile label="Entities" value="12" subtitle="Not dissolved" icon={<Building2 aria-hidden />} />
+          <StatTile label="Overdue" value="2" subtitle="Past their date" icon={<AlarmClock aria-hidden />} tone="risk" />
+          <StatTile label="Due soon" value="5" subtitle="Next 30 days" icon={<CalendarClock aria-hidden />} tone="warn" />
+        </div>
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Storage</CardTitle><Link>Manage</Link></CardHeader>
@@ -248,6 +254,7 @@ export const sections: SectionDef[] = [
           <CardBody>Alex Smith sent you a message.</CardBody>
           <CardFooter><Button size="sm" variant="primary">Reply</Button><Button size="sm" variant="ghost">Mark read</Button></CardFooter>
         </Card>
+      </div>
       </div>
     ),
   },

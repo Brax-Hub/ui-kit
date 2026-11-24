@@ -29,3 +29,25 @@ export const CardContent = CardBody;
 export function CardFooter({ className, ...props }: React.ComponentProps<"footer">) {
   return <footer className={cn("flex items-center gap-3 border-t border-line px-4 py-3", className)} {...props} />;
 }
+
+/* A number tile (Entity Hub's StatTile): the start page's card (.ha-card, hubarea.css 13: hairline frame on the
+   surface, 16px 20px padding, 12px between its lines) holding a small caps label, the count in the display face
+   (.count, admin.css 81: 28px, 0.02em, tabular) and a meta note under it (.meta, hub.css 198), with the app tile
+   square for an icon on the right (.apptile, hub.css 247: 40px, hairline, bg-2). A warn or risk tone colours the
+   number, as the status labels colour their dot; never a chart. */
+const tileTones = { default: "text-ink-1", ok: "text-ok", warn: "text-warn", risk: "text-risk", accent: "text-accent-text" } as const;
+const tileAliases: Record<string, keyof typeof tileTones> = { danger: "risk", warning: "warn", success: "ok" };
+
+export function StatTile({ label, value, subtitle, icon, tone, className, ...props }: Omit<React.ComponentProps<"div">, "title"> & { label: React.ReactNode; value: React.ReactNode; subtitle?: React.ReactNode; icon?: React.ReactNode; tone?: keyof typeof tileTones | "danger" | "warning" | "success" }) {
+  const t = tone ? (tileAliases[tone] ?? (tone as keyof typeof tileTones)) : "default";
+  return (
+    <div data-slot="stat-tile" data-tone={t} className={cn("flex items-start justify-between gap-3 border border-line bg-bg px-5 py-4 text-ink-1", className)} {...props}>
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className={capClass}>{label}</div>
+        <div className={cn("font-display font-strong text-count tracking-count tabular-nums", tileTones[t])}>{value}</div>
+        {subtitle ? <div className="text-small text-ink-3">{subtitle}</div> : null}
+      </div>
+      {icon ? <div className="flex size-control shrink-0 items-center justify-center border border-line bg-bg-2 text-ink-1 [&_svg]:size-icon">{icon}</div> : null}
+    </div>
+  );
+}
