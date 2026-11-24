@@ -3,7 +3,8 @@ import type * as React from "react";
 import { cn } from "../lib/cn.ts";
 
 /* .sw (hub.css 130-133): 44 x 24 pill, 3px padding, 18px knob; off on bg-3 with an ink-4 knob, on takes the accent
-   with the knob in --on-accent (the prototype writes white; see values.css departure 3). */
+   with the knob in --on-accent-control: white, by the owner's decision of 24 November 2026, wherever white reaches
+   3:1 on the accent, ink on an accent too light for it (values.css). */
 export function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
     <SwitchPrimitive.Root
@@ -14,7 +15,7 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
       )}
       {...props}
     >
-      <SwitchPrimitive.Thumb className="pointer-events-none block size-knob rounded-pill bg-ink-4 transition-transform data-[state=checked]:translate-x-5 data-[state=checked]:bg-on-accent" />
+      <SwitchPrimitive.Thumb className="pointer-events-none block size-knob rounded-pill bg-ink-4 transition-transform data-[state=checked]:translate-x-5 data-[state=checked]:bg-on-accent-control" />
     </SwitchPrimitive.Root>
   );
 }

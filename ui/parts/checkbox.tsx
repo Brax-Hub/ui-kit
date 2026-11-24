@@ -4,14 +4,15 @@ import type * as React from "react";
 import { cn } from "../lib/cn.ts";
 
 /* The prototype's checkbox is the native one at 18px in the accent (hub.css 127). This is the same square: 18px,
-   line-strong border, square corners; checked it fills with the accent and draws the check in --on-accent. */
+   line-strong border, square corners; checked it fills with the accent and draws the tick in --on-accent-control, the
+   colour of a control mark on the accent (white on the default accent; values.css). */
 export function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
     <CheckboxPrimitive.Root
       className={cn(
         "peer inline-flex size-knob shrink-0 cursor-pointer items-center justify-center rounded-control border border-line-strong bg-bg transition-colors",
         "focus-visible:shadow-glow focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-(--disabled-opacity)",
-        "data-[state=checked]:border-accent data-[state=checked]:bg-accent data-[state=checked]:text-on-accent data-[state=indeterminate]:border-accent data-[state=indeterminate]:bg-accent data-[state=indeterminate]:text-on-accent",
+        "data-[state=checked]:border-accent data-[state=checked]:bg-accent data-[state=checked]:text-on-accent-control data-[state=indeterminate]:border-accent data-[state=indeterminate]:bg-accent data-[state=indeterminate]:text-on-accent-control",
         className,
       )}
       {...props}
