@@ -17,6 +17,7 @@ The owner decided on 23 November 2026 that both live here (`Brax-Hub/contracts`,
 | `templates/AI_RULES.md` | The starting point the root skill copies into an app that has no `AI_RULES.md`. |
 | `tooling/` | The editor-side pieces: the Vite source tagger, the dev inspector, the root dev snippet, and the hub identity helpers. |
 | `docs/design-system/` | The preview page of the Brax brand for apps (`style-guide.html`) and its two screenshots. |
+| `ui/` | The shared UI kit: the file of values (`values.css`), the Tailwind 4 theme (`theme.css`), the sample page and its tests (FE01). The parts come with FE02. Start at [`ui/README.md`](ui/README.md). |
 
 These four moved here on 23 November 2026 from `dominic8686/brax-business-app` at commit `bc96b95`, with their
 history. The files are unchanged except one address in `kit/example/module.yaml` and one sentence in
@@ -43,7 +44,7 @@ claude plugin install spec-central@brax
 The root skill (`brax-business-app`) loads its companions by name. Copy the kit, templates and tooling the skills
 name from this repository into the app. The kit's own proof is `npm run gate` in `kit/example`.
 
-## The shared UI kit (planned, nothing built)
+## The shared UI kit (`ui/`; FE01 built, FE02 to come)
 
 `Brax-Hub/contracts` TASKS FE01 and FE02. Decided in ADR-039:
 
@@ -62,7 +63,7 @@ Three layers:
 3. **Parts:** the React components, taken once from the copies in `kit/example`, Feedback, the Guide's admin and Hub
    administration.
 
-Where these three sit in this repository, beside `kit/`, is for FE01 to settle.
+The three sit in `ui/`, beside `kit/` (FE01): `ui/values.css`, `ui/theme.css`, and the parts' folder when FE02 adds it.
 
 ## Not done
 

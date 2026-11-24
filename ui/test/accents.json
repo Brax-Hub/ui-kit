@@ -1,0 +1,9 @@
+[
+  { "hex": "#E65035", "name": "the hub's orange (default)" },
+  { "hex": "#2563EB", "name": "the business apps' old blue" },
+  { "hex": "#F4B740", "name": "a light yellow" },
+  { "hex": "#0B3D91", "name": "a dark navy" },
+  { "hex": "#22C55E", "name": "a green" },
+  { "hex": "#111111", "name": "near black" },
+  { "hex": "#FFFFFF", "name": "white" }
+]

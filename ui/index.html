@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brax Hub UI kit · shell components</title>
+<link rel="stylesheet" href="/ui.css">
+<!-- the prototype's licensed faces, only when the dev server has HUB_PROTOTYPE (.env.example); a 404 otherwise -->
+<link rel="stylesheet" href="/prototype-fonts.css">
+<script type="module" src="/sample/main.js"></script>
+</head>
+<body class="min-h-screen bg-bg text-ink-1">
+<!-- the icon paths are the prototype's own (Components.dc.html, const IC) -->
+<svg class="hidden" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z M10 21h4"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h4v4H4z M10 4h4v4h-4z M16 4h4v4h-4z M4 10h4v4H4z M10 10h4v4h-4z M16 10h4v4h-4z M4 16h4v4H4z M10 16h4v4h-4z M16 16h4v4h-4z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h9 M17 6h3 M15 4v4 M4 12h3 M11 12h9 M9 10v4 M4 18h11 M19 18h1 M17 16v4"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5v.7 M12 17h.01"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M4 13v7h16v-7 M12 3v12 M7.5 7.5L12 3l4.5 4.5"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></symbol>
+  <symbol id="i-sheets" viewBox="0 0 24 24"><path d="M4 4h16v16H4z M4 10h16 M4 15h16 M10 4v16"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z M8 9h8 M8 12h5"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M3 3l18 18 M8.5 16.5a5 5 0 0 1 7 0 M5 13a10 10 0 0 1 5-2.7 M14.5 10.4A10 10 0 0 1 19 13 M2 9.5a15 15 0 0 1 4.2-2.6 M10.5 5.6A15 15 0 0 1 22 9.5 M12 20h.01"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13l3-9h12l3 9v7H3z M3 13h5l1 3h6l1-3h5"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 7v5l3 2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12L20 4l-6 16-3-7z M11 13l9-9"/></symbol>
+  <symbol id="i-draft" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 17l1-3 5-5 2 2-5 5z"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14 M5 12h14"/></symbol>
+</svg>
+
+<!-- hidden probes: the readout reads the shades the browser computed, in a light and a dark region -->
+<div id="probes" hidden>
+  <div data-theme="light">
+    <span data-probe="bg" class="bg-bg"></span><span data-probe="bg-2" class="bg-bg-2"></span><span data-probe="bg-3" class="bg-bg-3"></span>
+    <span data-probe="ink-1" class="bg-ink-1"></span><span data-probe="accent" class="bg-accent"></span><span data-probe="accent-hover" class="bg-accent-hover"></span>
+    <span data-probe="accent-press" class="bg-accent-press"></span><span data-probe="accent-tint" class="bg-accent-tint"></span>
+    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span><span data-probe="on-accent-control" class="bg-on-accent-control"></span>
+  </div>
+  <div data-theme="dark">
+    <span data-probe="bg" class="bg-bg"></span><span data-probe="bg-2" class="bg-bg-2"></span><span data-probe="bg-3" class="bg-bg-3"></span>
+    <span data-probe="ink-1" class="bg-ink-1"></span><span data-probe="accent" class="bg-accent"></span><span data-probe="accent-hover" class="bg-accent-hover"></span>
+    <span data-probe="accent-press" class="bg-accent-press"></span><span data-probe="accent-tint" class="bg-accent-tint"></span>
+    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span><span data-probe="on-accent-control" class="bg-on-accent-control"></span>
+  </div>
+</div>
+
+<main id="sample" class="mx-auto flex w-360 max-w-full flex-col gap-14 px-16 pt-14 pb-24">
+
+  <!-- intro, as the prototype's -->
+  <div class="flex flex-col gap-3">
+    <span class="font-mono text-small uppercase tracking-caps text-ink-3">Brax Hub · UI kit · FE01</span>
+    <h1 class="text-h1">Shell components</h1>
+    <p class="max-w-180 text-lead text-ink-3">The parts every app sits in, built from the kit's Tailwind theme alone: one file of values, one accent set at run time, square controls, hairline rows. The text face for reading, the mono face for codes and small labels, the display face for titles.</p>
+    <p id="support" class="bg-risk-bg px-4 py-3 text-body" hidden>This browser lacks CSS relative colours or the light-dark function: the accent's shades and the dark theme will not compute here. Needs Chrome or Edge 123, Safari 17.5 or Firefox 128.</p>
+  </div>
+
+  <!-- the kit's own controls: theme and accent -->
+  <section class="flex flex-col gap-4.5">
+    <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Theme and accent</h2></div>
+    <div class="flex flex-wrap items-center gap-6">
+      <div class="flex w-70 border border-line-strong" role="group" aria-label="Theme">
+        <button type="button" data-theme-pick="light" aria-pressed="false" class="h-control-mid flex-1 cursor-pointer bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3 aria-pressed:bg-accent-tint aria-pressed:text-ink-1">Light</button>
+        <button type="button" data-theme-pick="dark" aria-pressed="false" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3 aria-pressed:bg-accent-tint aria-pressed:text-ink-1">Dark</button>
+        <button type="button" data-theme-pick="system" aria-pressed="false" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3 aria-pressed:bg-accent-tint aria-pressed:text-ink-1">System</button>
+      </div>
+      <div id="accent-chips" class="flex flex-wrap gap-2" role="group" aria-label="Accent"
+        data-chip-class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-chip text-ink-2 hover:border-ink-2 aria-pressed:border-accent aria-pressed:bg-accent-tint aria-pressed:text-ink-1"
+        data-swatch-class="inline-block size-dot rounded-pill bg-accent"></div>
+    </div>
+    <div class="grid grid-cols-4 gap-4">
+      <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Accent · hover · pressed</span>
+        <div class="flex"><span class="h-control flex-1 bg-accent"></span><span class="h-control flex-1 bg-accent-hover"></span><span class="h-control flex-1 bg-accent-press"></span></div>
+        <span class="font-mono text-small text-ink-3"><span id="r-accent"></span> · <span id="r-hover"></span> · <span id="r-press"></span></span></div>
+      <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">As text, light and dark</span>
+        <div class="flex"><span data-theme="light" class="flex h-control flex-1 items-center justify-center bg-bg font-display font-strong text-small uppercase tracking-link text-accent-text">Review</span><span data-theme="dark" class="flex h-control flex-1 items-center justify-center bg-bg font-display font-strong text-small uppercase tracking-link text-accent-text">Review</span></div>
+        <span class="font-mono text-small text-ink-3"><span id="r-text-light"></span> <span data-ok="light"></span><br><span id="r-text-dark"></span> <span data-ok="dark"></span></span></div>
+      <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Text on the accent</span>
+        <div class="flex"><span class="flex h-control flex-1 items-center justify-center bg-accent font-display font-strong text-body uppercase tracking-button text-on-accent">Upload</span></div>
+        <span class="font-mono text-small text-ink-3"><span id="r-on"></span> <span data-ok="on"></span><br>knob <span id="r-knob"></span></span></div>
+      <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Tint and focus ring</span>
+        <div class="flex gap-3"><span class="flex h-control flex-1 items-center justify-center bg-accent-tint text-body">Selected row</span><span class="h-control w-control shadow-glow border border-accent bg-bg"></span></div>
+        <span class="font-mono text-small text-ink-3" id="r-tint"></span></div>
+    </div>
+    <p class="text-small text-ink-3">The numbers are read back from this browser's computed styles, not from the test. Pick an accent: the one variable --accent changes on &lt;html&gt;, as the hub's theme will set it, and every shade follows.</p>
+  </section>
+
+  <!-- header -->
+  <section class="flex flex-col gap-4.5">
+    <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Header</h2></div>
+    <div class="border border-line">
+      <div class="relative flex h-header items-center gap-3 bg-bg pl-6 pr-4">
+        <span class="flex items-center gap-3.5 text-ink-1"><span class="font-display font-strong text-h2-small lowercase tracking-title" role="img" aria-label="brax">brax</span><span class="inline-block h-tick-h w-tick-w bg-accent"></span><span class="font-display font-strong text-title uppercase tracking-chip">Mail</span></span>
+        <span class="font-mono text-small text-ink-3">smith.brax.network</span>
+        <span class="ml-3 flex h-control max-w-140 flex-1 basis-90 cursor-text items-center gap-2.5 border border-line-strong bg-bg-2 px-3 text-left text-ink-3 hover:border-ink-3"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-search"/></svg><span class="min-w-0 flex-1">Search Mail, or everything</span><span class="border border-line-strong bg-bg px-1.5 font-mono text-small leading-5 text-ink-3">/</span></span>
+        <span class="ml-auto flex gap-0.5">
+          <span class="relative inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="absolute top-1 right-0.75 inline-flex h-knob min-w-knob items-center justify-center rounded-pill bg-accent px-1.25 font-mono text-tiny text-on-accent">9</span></span>
+          <span class="inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-grid"/></svg></span>
+          <span class="inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-sliders"/></svg></span>
+          <span class="inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-help"/></svg></span>
+          <span class="inline-flex size-control shrink-0 items-center justify-center"><span class="inline-flex size-control-sm shrink-0 items-center justify-center rounded-pill bg-ink-1 font-display font-strong text-small tracking-button text-bg">DS</span></span>
+        </span>
+      </div>
+    </div>
+    <p class="text-small text-ink-3">68 px. Wordmark, accent tick and app name in display caps · hub address · search across everything · notifications, launcher, quick settings, help, account.</p>
+  </section>
+
+  <div class="grid grid-cols-2 gap-14">
+    <!-- buttons -->
+    <section class="flex flex-col gap-4.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Buttons</h2></div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" class="inline-flex h-control cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent bg-accent px-4.5 font-display font-strong text-body uppercase tracking-button text-on-accent transition-colors hover:bg-accent-hover active:bg-accent-press">Upload</button>
+        <button type="button" class="inline-flex h-control cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control border border-button-2-line bg-button-2 px-4.5 font-display font-strong text-body uppercase tracking-button text-ink-1 transition-colors hover:bg-button-2-hover hover:text-button-2-hover-text">New folder</button>
+        <button type="button" class="inline-flex h-control cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent px-4.5 font-display font-strong text-body uppercase tracking-button text-ink-1 transition-colors hover:bg-wash">Cancel</button>
+        <button type="button" disabled class="inline-flex h-control items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent bg-accent px-4.5 font-display font-strong text-body uppercase tracking-button text-on-accent">Send</button>
+        <button type="button" class="inline-flex h-control-sm cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control border border-button-2-line bg-button-2 px-3 font-display font-strong text-small uppercase tracking-button text-ink-1 transition-colors hover:bg-button-2-hover hover:text-button-2-hover-text">Empty trash</button>
+        <button type="button" class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-accent-text hover:underline hover:underline-offset-3">Review</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-share"/></svg></span>
+        <span class="inline-flex size-control shrink-0 items-center justify-center bg-accent-tint text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-grid"/></svg></span>
+        <span class="relative inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="absolute top-1 right-0.75 inline-flex h-knob min-w-knob items-center justify-center rounded-pill bg-accent px-1.25 font-mono text-tiny text-on-accent">3</span></span>
+        <span class="ml-3 text-small text-ink-3">Square. Primary is the one verb per screen. Hover darkens, no movement. The text on the primary is white or ink, whichever reads 4.5:1; the switch knob is white wherever white reads 3:1.</span>
+      </div>
+    </section>
+
+    <!-- fields -->
+    <section class="flex flex-col gap-4.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Fields and controls</h2></div>
+      <div class="grid grid-cols-2 gap-4">
+        <label class="flex flex-col gap-1.5"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Name</span><input class="h-control w-full rounded-control border border-line-strong bg-bg px-3 text-body text-ink-1 placeholder:text-ink-4 focus:border-accent focus:shadow-glow focus:outline-none" value="Q4 budget"></label>
+        <label class="flex flex-col gap-1.5"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Focused</span><input class="h-control w-full rounded-control border border-accent bg-bg px-3 text-body text-ink-1 shadow-glow focus:outline-none" value="dana@"></label>
+        <label class="flex flex-col gap-1.5"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Error</span><input class="h-control w-full rounded-control border border-risk bg-bg px-3 text-body text-ink-1 focus:shadow-glow focus:outline-none" value="wrong"><span class="text-body text-risk">Wrong username or password.</span></label>
+        <label class="flex flex-col gap-1.5"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Role</span><select class="h-control w-full cursor-pointer rounded-control border border-line-strong bg-bg px-3 text-body text-ink-1 focus:border-accent focus:shadow-glow focus:outline-none"><option>Editor</option><option>Commenter</option><option>Viewer</option></select></label>
+      </div>
+      <div class="flex flex-wrap items-center gap-6">
+        <span class="flex h-switch-h w-switch-w shrink-0 cursor-pointer rounded-pill bg-accent p-0.75 transition-colors"><i class="block size-knob translate-x-5 rounded-pill bg-on-accent-control transition-transform"></i></span>
+        <span class="flex h-switch-h w-switch-w shrink-0 cursor-pointer rounded-pill bg-bg-3 p-0.75 transition-colors"><i class="block size-knob rounded-pill bg-ink-4 transition-transform"></i></span>
+        <label class="flex cursor-pointer items-center gap-2.5"><input type="checkbox" checked class="m-0 size-knob accent-accent"><span>Notify people</span></label>
+        <div class="flex w-70 border border-line-strong"><button type="button" class="h-control-mid flex-1 cursor-pointer bg-accent-tint px-3 font-mono text-small uppercase tracking-seg text-ink-1">Light</button><button type="button" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3">Dark</button><button type="button" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3">System</button></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid grid-cols-2 gap-14">
+    <!-- chips, tabs -->
+    <section class="flex flex-col gap-4.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Chips and tabs</h2></div>
+      <div class="flex flex-wrap gap-2">
+        <span class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-accent bg-accent-tint px-3 font-mono text-small uppercase tracking-chip text-ink-1">All apps</span>
+        <span class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-chip text-ink-2 hover:border-ink-2">Mail</span>
+        <span class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-chip text-ink-2 hover:border-ink-2">Files</span>
+        <span class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-chip text-ink-2 hover:border-ink-2">Docs</span>
+        <span class="inline-flex h-control-sm cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-chip text-ink-2 hover:border-ink-2">Past week</span>
+      </div>
+      <div class="flex gap-6 border-b border-line">
+        <span class="flex h-control-tall cursor-pointer items-center whitespace-nowrap font-mono text-small uppercase tracking-caps text-accent-text">All</span>
+        <span class="flex h-control-tall cursor-pointer items-center whitespace-nowrap font-mono text-small uppercase tracking-caps text-ink-3">Mentions</span>
+        <span class="flex h-control-tall cursor-pointer items-center whitespace-nowrap font-mono text-small uppercase tracking-caps text-ink-3">Calls</span>
+        <span class="flex h-control-tall cursor-pointer items-center whitespace-nowrap font-mono text-small uppercase tracking-caps text-ink-3">Shared with you</span>
+      </div>
+      <p class="text-small text-ink-3">Tabs are text only, mono caps. The active tab takes the accent as text. No pill, no underline.</p>
+    </section>
+
+    <!-- status and storage -->
+    <section class="flex flex-col gap-4.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Status and storage</h2></div>
+      <div class="flex flex-wrap gap-6">
+        <span class="flex items-center gap-2"><span class="inline-block size-dot shrink-0 rounded-pill bg-ok"></span>Working</span>
+        <span class="flex items-center gap-2"><span class="inline-block size-dot shrink-0 rounded-pill bg-warn"></span>Needs a look</span>
+        <span class="flex items-center gap-2"><span class="inline-block size-dot shrink-0 rounded-pill bg-risk"></span>Not working</span>
+        <span class="flex items-center gap-2"><span class="inline-block size-dot shrink-0 rounded-pill bg-accent"></span>Asks for you</span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="flex h-meter overflow-hidden bg-bg-3"><i class="block h-full w-[18%] bg-ink-1"></i><i class="block h-full w-[12%] bg-ink-3"></i><i class="block h-full w-[5%] bg-ink-4"></i><i class="block h-full w-[1%] bg-line-strong"></i></div><span class="text-small text-ink-3">18.4 GB used · 3.3 TB free</span>
+        <div class="flex h-meter overflow-hidden bg-bg-3"><i class="block h-full w-[92%] bg-warn"></i></div><span class="text-small text-ink-3">46 GB of 50 GB used</span>
+        <div class="flex h-meter overflow-hidden bg-bg-3"><i class="block h-full w-full bg-risk"></i></div><span class="text-small text-accent-text">50 GB of 50 GB used</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- rows -->
+  <section class="flex flex-col gap-4.5">
+    <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Rows</h2></div>
+    <div class="border-t border-line">
+      <div class="relative flex min-h-control items-center gap-4 border-b border-line pl-8 pr-4 font-mono text-small uppercase tracking-caps text-ink-3"><span class="w-4.5"></span><span class="min-w-0 flex-1">Name</span><span class="w-40 shrink-0">Owner</span><span class="w-35 shrink-0">Modified</span><span class="w-20 shrink-0 text-right">Size</span></div>
+      <div class="relative flex min-h-row cursor-pointer items-center gap-4 border-b border-line pl-8 pr-4 hover:bg-wash"><input type="checkbox" class="m-0 size-knob accent-accent"><span class="flex min-w-0 flex-1 items-center gap-3.5"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-folder"/></svg><span class="font-display font-strong text-title tracking-row-title">Contracts</span></span><span class="w-40 shrink-0 text-small text-ink-3">You</span><span class="w-35 shrink-0 text-small text-ink-3">Oct 18</span><span class="w-20 shrink-0 text-right font-mono text-small text-ink-3">—</span></div>
+      <div class="relative flex min-h-row cursor-pointer items-center gap-4 border-b border-line bg-accent-tint pl-8 pr-4"><input type="checkbox" checked class="m-0 size-knob accent-accent"><span class="flex min-w-0 flex-1 items-center gap-3.5"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-sheets"/></svg><span class="font-display font-strong text-title tracking-row-title">Q4 budget</span></span><span class="w-40 shrink-0 text-small text-ink-3">You</span><span class="w-35 shrink-0 text-small text-ink-3">12 min ago</span><span class="w-20 shrink-0 text-right font-mono text-small text-ink-3">48 KB</span></div>
+      <div class="relative flex min-h-row cursor-pointer items-start gap-4 border-b border-line pl-8 pr-4 pt-3.5 pb-3.5 hover:bg-wash"><span class="absolute top-1/2 left-3.5 -mt-1 size-dot rounded-pill bg-accent"></span><span class="flex size-control-sm items-center justify-center border border-line bg-bg-2 text-ink-1"><svg class="size-icon-sm shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chat"/></svg></span><span class="flex min-w-0 flex-1 flex-col gap-1.5"><span>Alex Smith sent you a message</span><span class="flex gap-4"><span class="text-small text-ink-3">Chat · 4 min</span><span class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-accent-text">Reply</span><span class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-ink-3">Mark read</span></span></span></div>
+      <div class="relative flex min-h-row items-center gap-4 border-b border-line pl-8 pr-4"><span class="block size-knob bg-bg-3"></span><span class="flex min-w-0 flex-1 flex-col gap-2"><span class="block h-skeleton w-[40%] bg-bg-3"></span><span class="block h-2 w-[22%] bg-bg-3"></span></span><span class="block h-skeleton w-22.5 shrink-0 bg-bg-3"></span></div>
+    </div>
+    <p class="text-small text-ink-3">Selected rows take the accent tint. Unread items carry the accent dot. Loading is skeleton rows, never a spinner in content.</p>
+  </section>
+
+  <div class="grid grid-cols-2 gap-14">
+    <!-- feedback -->
+    <section class="flex flex-col gap-3.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Notices, toasts, empty states</h2></div>
+      <div class="flex items-start gap-3 bg-bg-2 px-4 py-3 text-body">Items in Trash are deleted forever after 30 days.</div>
+      <div class="flex items-start gap-3 bg-accent-tint px-4 py-3 text-body text-ink-1"><span class="mt-1.5 inline-block size-dot shrink-0 rounded-pill bg-accent"></span><span class="min-w-0 flex-1">2 people asked for access</span><span class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-accent-text">Review</span></div>
+      <div class="flex items-start gap-3 bg-warn-bg px-4 py-3 text-body">Storage is 92% full: 46 GB of 50 GB.</div>
+      <div class="flex items-start gap-3 bg-risk-bg px-4 py-3 text-body">Storage is full. Uploads are paused and new mail is not being received.</div>
+      <div class="relative h-16"><div class="absolute bottom-2 left-0 flex h-toast max-w-full items-center gap-4 bg-toast-bg pr-2 pl-4 text-body text-toast-text"><span>Moved “Old invoices.zip” to Trash</span><span class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-toast-accent">Undo</span><span class="inline-flex size-control-sm shrink-0 items-center justify-center text-toast-text"><svg class="size-icon-sm shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+      <div class="border border-line"><div class="flex flex-col items-start gap-4 p-7"><p>Trash is empty.</p></div></div>
+      <div class="border border-line"><div class="flex flex-col items-start gap-4 p-7"><p>No files match these filters.</p><button type="button" class="inline-flex h-control cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control border border-button-2-line bg-button-2 px-4.5 font-display font-strong text-body uppercase tracking-button text-ink-1 transition-colors hover:bg-button-2-hover hover:text-button-2-hover-text">Clear filters</button></div></div>
+    </section>
+
+    <!-- people, keys, banners -->
+    <section class="flex flex-col gap-4.5">
+      <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">People, keys, banners</h2></div>
+      <div class="flex flex-wrap items-center gap-4">
+        <span class="inline-flex size-control-sm shrink-0 items-center justify-center rounded-pill bg-ink-1 font-display font-strong text-small tracking-button text-bg">DS</span>
+        <span class="inline-flex size-control-sm shrink-0 items-center justify-center rounded-pill bg-bg-3 font-display font-strong text-small tracking-button text-ink-1">AS</span>
+        <span class="inline-flex size-control-sm shrink-0 items-center justify-center rounded-pill bg-bg-3 font-display font-strong text-small tracking-button text-ink-1">JL</span>
+        <span class="inline-flex size-control-sm shrink-0 items-center justify-center rounded-pill bg-bg-3 font-display font-strong text-small tracking-button text-ink-1">PS</span>
+        <span class="inline-flex size-avatar-lg items-center justify-center rounded-pill bg-ink-1 font-display font-strong text-h3 tracking-button text-bg">DS</span>
+        <span class="border border-line-strong bg-bg px-1.5 font-mono text-small leading-5 text-ink-3">/</span><span class="border border-line-strong bg-bg px-1.5 font-mono text-small leading-5 text-ink-3">?</span><span class="border border-line-strong bg-bg px-1.5 font-mono text-small leading-5 text-ink-3">Esc</span><span class="border border-line-strong bg-bg px-1.5 font-mono text-small leading-5 text-ink-3">G then F</span>
+      </div>
+      <div class="flex items-center gap-3 border border-line bg-warn-bg px-6 py-2.5 text-body"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-wifi-off"/></svg><span class="min-w-0 flex-1">You are offline. Changes are saved on this device and sync when the connection is back.</span><span class="cursor-pointer whitespace-nowrap font-display font-strong text-small uppercase tracking-link text-accent-text">Try again</span></div>
+      <div class="flex items-center gap-3.5 pt-4"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">App rail</h2></div>
+      <div class="flex h-130 border border-line">
+        <nav class="flex w-rail shrink-0 flex-col gap-0.5 border-r border-line bg-bg px-3 pt-4 pb-3" aria-label="Mail folders (example)">
+          <span class="mb-3.5 inline-flex h-control w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-control bg-accent px-4.5 font-display font-strong text-body uppercase tracking-button text-on-accent hover:bg-accent-hover"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-edit"/></svg>Compose</span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 bg-accent-tint px-3 text-left text-body text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-inbox"/></svg><span>Inbox</span><span class="ml-auto font-mono text-small text-ink-3">4</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-star"/></svg><span>Starred</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><span>Snoozed</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-send"/></svg><span>Sent</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-draft"/></svg><span>Drafts</span><span class="ml-auto font-mono text-small text-ink-3">2</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-clock"/></svg><span>Scheduled</span><span class="ml-auto font-mono text-small text-ink-3">1</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chev-d"/></svg><span>More</span></span>
+          <div class="flex items-center pt-4 pr-1 pb-1.5 pl-3"><span class="min-w-0 flex-1 font-mono text-small uppercase tracking-caps text-ink-3">Labels</span><span class="inline-flex size-control-sm shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon-sm shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-plus"/></svg></span></div>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><i class="block size-dot bg-ink-3"></i><span class="truncate">Work</span><span class="ml-auto font-mono text-small text-ink-3">3</span></span>
+          <span class="flex h-control w-full cursor-pointer items-center gap-3 px-3 text-left text-body text-ink-2 hover:bg-wash"><i class="block size-dot bg-ink-4"></i><span class="truncate">Kitchen renovation</span><span class="ml-auto font-mono text-small text-ink-3">2</span></span>
+        </nav>
+        <div class="flex min-w-0 flex-1 flex-col gap-3 p-6"><span class="block h-skeleton w-[60%] bg-bg-3"></span><span class="block h-2 w-[40%] bg-bg-3"></span></div>
+      </div>
+      <p class="text-small text-ink-3">The primary verb tops the rail; counts sit right, in the mono face. Rail items read in the text face.</p>
+    </section>
+  </div>
+
+  <!-- the seven test accents, measured here -->
+  <section class="flex flex-col gap-4.5">
+    <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Seven accents, measured in this browser</h2></div>
+    <table class="w-full border-t border-line text-body">
+      <thead><tr class="font-mono text-small uppercase tracking-caps text-ink-3"><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Accent</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Hover</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Pressed</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, light</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, dark</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Text on it</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Knob on it</th><th class="border-b border-line py-2.5 text-left font-regular">Ink on tint</th></tr></thead>
+      <tbody id="accent-table" data-row-class="font-mono text-small" data-cell-class="border-b border-line py-2.5 pr-4 align-middle" data-swatch-class="mr-2 inline-block size-knob align-middle bg-accent" data-meta-class="text-ink-3"></tbody>
+    </table>
+    <p class="text-small text-ink-3">Contrast is the worst of the three surfaces of each theme (bg, bg-2, bg-3). The same numbers come from <span class="font-mono">npm test</span> without a browser.</p>
+  </section>
+
+</main>
+</body>
+</html>
