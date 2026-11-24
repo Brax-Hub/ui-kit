@@ -24,8 +24,11 @@ Three layers (TASKS FE01 and FE02).
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Table, TR, TD } from "@brax-hub/ui/parts";
 ```
 
-Consumers pin a tag of this repository (AGENTS.md: "Publish by tag"); nothing references its working tree. The parts
-are TypeScript source (`parts/*.tsx`), compiled by the app's own Vite, as shadcn copies are; the app needs React 19.
+Consumers pin a tag of this repository (AGENTS.md: "Publish by tag"); nothing references its working tree. The first
+version an app can pin is `0.1.0`, the tag `ui-v0.1.0` (the tag is the owner's to make). The `ui-` prefix names which
+of the repository's two things the tag publishes: the module kit's own release workflow, which an app copies, fires on
+bare `v*` tags in the app's repository, so a bare `v0.1.0` here would read as the kit's or an app's. The parts are
+TypeScript source (`parts/*.tsx`), compiled by the app's own Vite, as shadcn copies are; the app needs React 19.
 The app writes no colour, face, spacing or radius of its own (ADR-039 rule 3); `npm test` here shows the check the kit's
 own files and parts pass, and FE04 brings the same check to the apps.
 
@@ -41,13 +44,24 @@ at run time, with rules that keep text at 4.5:1 or better (`values.css`, "the ac
 licensed to Brax and are not in this repository: the hub serves them as one stylesheet, decided by the owner on
 24 November 2026 (`fonts/README.md`; ADR-039 "Open" 8, task FE08). Every stack has system fallbacks.
 
+## Decisions the kit carries
+
+Three the owner took on 24 November 2026, each asked as one question with a recommendation; the records are in
+`Brax-Hub/contracts` where named.
+
+| Asked | The owner's answer | Where it lives |
+| --- | --- | --- |
+| "Should the hub serve Kinetika and LFT Etica Mono as one stylesheet, `/hub/assets/fonts/hub-fonts.css`, that every app links?" | "Yes, hub serves them" (ADR-039 "Open" 8; task FE08, the hub server's) | `fonts/README.md`; the stacks in `values.css` name the families and fall back to system faces |
+| "Should the switch knob keep the prototype's white on the orange accent?" | "Yes, white knob" | `values.css` `--on-accent-control`: a control mark on the accent needs 3:1 and is white wherever white reaches it; text on the accent needs 4.5:1 and takes `--on-accent` |
+| "Should dialogs be the prototype's right-hand sheet, or the centred box the apps have today?" | "Right-hand sheet" | `parts/dialog.tsx` (the right-hand sheet), `parts/alert-dialog.tsx` (the bottom sheet), `parts/command.tsx` (a panel under the header); no centred box |
+
 ## The parts
 
 Each file in `parts/` says which rule of the prototype it draws (`hub.css` and `admin.css` lines). What a reader of
 shadcn's names should know:
 
 - **No centred dialog.** The prototype has none ("dialogs are right-hand sheets, confirmations are bottom sheets, menus
-  anchor to what opened them"). `Dialog` is the right-hand sheet (`DialogHeader`, `DialogBody`, `DialogFooter`; `Sheet`
+  anchor to what opened them"), and the owner confirmed it on 24 November 2026 ("Right-hand sheet"). `Dialog` is the right-hand sheet (`DialogHeader`, `DialogBody`, `DialogFooter`; `Sheet`
   is the same part with `side` and `wide`), `AlertDialog` is the bottom sheet, `CommandDialog` a panel under the header.
 - **Buttons** are display-face caps, 40px, square: `primary` (the one verb per screen), `secondary` (outlined), `ghost`,
   `link`, `destructive`; `default` and `outline` are accepted as aliases. `IconButton` is the 40px icon button.
