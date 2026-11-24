@@ -1,0 +1,155 @@
+/* Brax Hub UI kit: the Tailwind 4 theme (layer 2). It reads values.css and writes no value of its own.
+   `inline` makes every utility reference the values file's variable directly (bg-accent → background-color:
+   var(--accent)), so a value resolves on the element that uses it: light-dark() against that element's color-scheme,
+   the accent's shades against the --accent in force there.
+   The `initial` lines drop Tailwind's own palette, faces, sizes, radii and shadows, so an app can write neither
+   bg-red-500 nor rounded-lg: only what the values file names exists (ADR-039 "an app defines no colour or face"). */
+
+@import "tailwindcss";
+@import "./values.css";
+
+@theme inline {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --tracking-*: initial;
+  --leading-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --ease-*: initial;
+  --animate-*: initial;
+
+  /* colours: bg-bg, bg-bg-2, border-line, text-ink-1 … text-ink-4, bg-accent, text-accent-text, text-on-accent … */
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-wash: var(--wash);
+  --color-scrim: var(--scrim);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-risk: var(--risk);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn-bg: var(--warn-bg);
+  --color-risk-bg: var(--risk-bg);
+  --color-button-2: var(--button-2);
+  --color-button-2-hover: var(--button-2-hover);
+  --color-button-2-hover-text: var(--button-2-hover-text);
+  --color-button-2-line: var(--button-2-line);
+  --color-toast-bg: var(--toast-bg);
+  --color-toast-text: var(--toast-text);
+  --color-toast-accent: var(--toast-accent);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-press: var(--accent-press);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-ring: var(--accent-ring);
+  --color-accent-text: var(--accent-text);
+  --color-on-accent: var(--on-accent);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+
+  /* faces: font-text, font-mono, font-display */
+  --font-text: var(--face-text);
+  --font-mono: var(--face-mono);
+  --font-display: var(--face-display);
+  --font-weight-*: initial;
+  --font-weight-strong: var(--weight-display);   /* font-strong: the display face's one weight */
+  --font-weight-regular: var(--weight-text);
+
+  /* type: text-tiny … text-h1 */
+  --text-tiny: var(--type-tiny);
+  --text-small: var(--type-small);
+  --text-body: var(--type-body);
+  --text-title: var(--type-title);
+  --text-lead: var(--type-lead);
+  --text-h3: var(--type-h3);
+  --text-h2-small: var(--type-h2-small);
+  --text-h2: var(--type-h2);
+  --text-h1: var(--type-h1);
+  --text-h1--line-height: var(--leading-tight);
+  --leading-body: var(--leading);
+  --leading-tight: var(--leading-tight);
+
+  /* letter-spacing: tracking-caps, tracking-button … */
+  --tracking-caps: var(--letter-caps);
+  --tracking-button: var(--letter-button);
+  --tracking-link: var(--letter-link);
+  --tracking-chip: var(--letter-chip);
+  --tracking-seg: var(--letter-seg);
+  --tracking-title: var(--letter-title);
+  --tracking-row-title: var(--letter-row-title);
+  --tracking-h3: var(--letter-h3);
+
+  /* spacing: p-4 is four steps (16px); the named sizes give h-control, w-rail, size-dot … */
+  --spacing: var(--space);
+  --spacing-control: var(--control);
+  --spacing-control-sm: var(--control-sm);
+  --spacing-control-mid: var(--control-mid);
+  --spacing-control-tall: var(--control-tall);
+  --spacing-row: var(--row);
+  --spacing-header: var(--header);
+  --spacing-rail: var(--rail);
+  --spacing-sheet: var(--sheet);
+  --spacing-sheet-wide: var(--sheet-wide);
+  --spacing-menu-min: var(--menu-min);
+  --spacing-toast: var(--toast);
+  --spacing-avatar-lg: var(--avatar-lg);
+  --spacing-switch-w: var(--switch-w);
+  --spacing-switch-h: var(--switch-h);
+  --spacing-knob: var(--knob);
+  --spacing-dot: var(--dot);
+  --spacing-icon: var(--icon);
+  --spacing-icon-sm: var(--icon-sm);
+  --spacing-icon-lg: var(--icon-lg);
+  --spacing-tick-w: var(--tick-w);
+  --spacing-tick-h: var(--tick-h);
+  --spacing-meter: var(--meter);
+  --spacing-hairline: var(--hairline);
+  --spacing-skeleton: var(--skeleton);
+
+  /* corners: rounded-control (square) and rounded-pill */
+  --radius-control: var(--corner);
+  --radius-pill: var(--corner-pill);
+
+  /* shadow, focus ring, motion */
+  --shadow-pop: var(--pop-shadow);
+  --shadow-glow: var(--glow);
+  --ease-hub: var(--motion-ease);
+  --default-transition-duration: var(--motion);
+  --default-transition-timing-function: var(--motion-ease);
+}
+
+/* Element defaults the prototype sets on .hub (hub.css 70-76): the kit's base, on every page that imports it. */
+@layer base {
+  html {
+    font-family: var(--face-text);
+    font-weight: var(--weight-text);
+    font-size: var(--type-body);
+    line-height: var(--leading);
+    color: var(--ink-1);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3 {
+    font-family: var(--face-display);
+    font-weight: var(--weight-display);
+    letter-spacing: var(--letter-title);
+    text-wrap: balance;
+  }
+  :focus-visible { outline: none; box-shadow: var(--glow); }
+  :disabled { opacity: var(--disabled-opacity); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+}

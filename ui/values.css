@@ -1,0 +1,208 @@
+/* Brax Hub UI kit: the file of values (ADR-039 "one front end", TASKS FE01).
+   Layer 1 of the kit. Every colour, face, size, spacing step, radius and letter-spacing of a Brax Hub app is written
+   here and nowhere else (ui-kit AGENTS.md). Tailwind utilities read it through theme.css; a screen that is not React
+   links this file alone.
+
+   Source: the owner's prototype of 23 October 2026, the design of record (contracts HUB-SHELL §17 R1), kept at
+   C:\git\hub-prototype on the owner's PC. "hub.css N" below is a line of that prototype's hub.css; "Components" is its
+   Components.dc.html. What departs from the prototype and why is listed at the end of this file.
+
+   Light and dark. The hub shell tells a module's page which theme it shows with the `hub.theme` message
+   (HUB-SHELL §4.4: `theme` is "light" or "dark"); the page writes it as data-theme on <html>, or on any ancestor of
+   what it themes. No attribute, or data-theme="system", follows the device (prefers-color-scheme), as the prototype's
+   .hub[data-theme="system"] does (hub.css 59-67). Every colour below is written once as light-dark(light, dark) and
+   resolves against the color-scheme of the element that uses it, so a dark region inside a light page works too.
+
+   The accent. One value, --accent, set by the hub's owner at run time (ADR-039 D4; FE03 writes it from hub.theme).
+   Every shade is computed from it here, in CSS, with no build step: hover, pressed, tint, focus ring, the accent as
+   text on each background, and the text colour on the accent. The rules and their proof are in
+   test/contrast.test.mjs. Needs CSS relative colour syntax with math, light-dark() and @property: Chrome and Edge
+   123, Safari 17.5, Firefox 128 and later (README.md says why). */
+
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #E65035;       /* hub.css 21, brand-orange: the hub's accent until its owner sets another */
+}
+
+:root {
+  color-scheme: light dark;     /* no data-theme: follow the device, as .hub[data-theme="system"] (hub.css 59-67) */
+
+  /* ---- surfaces and lines (light: hub.css 11-15 "paper"; dark: hub.css 41-45 "os-*") ---- */
+  --bg: light-dark(#FFFFFF, #0B0D12);            /* hub.css 11 paper · 41 os-bg */
+  --bg-2: light-dark(#F5F4F7, #14171F);          /* hub.css 12 paper-2 · 42 os-surface */
+  --bg-3: light-dark(#ECEAEE, #1A1D24);          /* hub.css 13 paper-3 · 43 os-card */
+  --line: light-dark(#E4E2E6, #2A2E38);          /* hub.css 14 · 44 os-border */
+  --line-strong: light-dark(#C8C5CD, #3A3F4B);   /* hub.css 15 · 45 os-border-strong */
+  --wash: light-dark(rgba(23, 23, 23, 0.06), rgba(255, 255, 255, 0.06)); /* hub.css 20 · 50: hover wash */
+  --scrim: rgba(11, 13, 18, 0.6);                /* hub.css 32, both themes */
+
+  /* ---- text levels (light: hub.css 16-19 "ink"; dark: hub.css 46-49 "os-text") ---- */
+  --ink-1: light-dark(#171717, #F3F4F7);         /* hub.css 16 ink-1 · 46 os-text-1 */
+  --ink-2: light-dark(#2B2B2E, #B9BCC4);         /* hub.css 17 ink-2 · 47 os-text-2 */
+  --ink-3: light-dark(#55555A, #B9BCC4);         /* hub.css 18 ink-3, meta text, 7.4:1 on paper · 48 (os-text-3 fails on os-surface) */
+  --ink-4: light-dark(#87878D, #7A7E8A);         /* hub.css 19 ink-4, disabled and decoration only · 49 os-text-3 */
+
+  /* ---- states (hub.css 26-31; dark 52-53) ---- */
+  --ok: light-dark(#1F9F4A, #22C55E);            /* hub.css 26 hw-on · 52 */
+  --warn: #F4B740;                               /* hub.css 27 status-warn, both themes */
+  --risk: light-dark(#C8281A, #EF4444);          /* hub.css 28 hw-off · 53 */
+  --ok-bg: rgba(34, 197, 94, 0.14);              /* hub.css 29 */
+  --warn-bg: rgba(244, 183, 64, 0.18);           /* hub.css 30 */
+  --risk-bg: rgba(239, 68, 68, 0.12);            /* hub.css 31 */
+
+  /* ---- the secondary button's own surfaces (hub.css 100-103) ---- */
+  --button-2: light-dark(#FFFFFF, #22262F);      /* hub.css 100 var(--bg) · 102 */
+  --button-2-hover: light-dark(#171717, #2A2E38);        /* hub.css 101 var(--t1) · 103 */
+  --button-2-hover-text: light-dark(#FFFFFF, #F3F4F7);   /* hub.css 101 var(--bg) · 103 var(--t1) */
+  --button-2-line: light-dark(#171717, #3A3F4B);         /* hub.css 100 var(--t1) · 102 var(--line-strong) */
+
+  /* ---- shadow and toast (hub.css 33-37; dark 54-57) ---- */
+  --pop-shadow: 0 1px 0 light-dark(transparent, rgba(255, 255, 255, 0.03)) inset,
+                0 12px 32px light-dark(rgba(11, 13, 18, 0.12), rgba(0, 0, 0, 0.45)); /* hub.css 33 · 54 (departure 4) */
+  --toast-bg: light-dark(#171717, #F3F4F7);      /* hub.css 35 · 55: the toast is the inverted surface */
+  --toast-text: light-dark(#F3F4F7, #171717);    /* hub.css 36 · 56 */
+  --toast-accent: light-dark(var(--accent-text-dark), var(--accent-text-light)); /* hub.css 37 #E65035 · 57 #B83A21: the accent as text on the inverted surface */
+
+  /* ---- the accent and its shades ---- */
+  --accent: #E65035;                             /* hub.css 21. FE03 overwrites this one line from hub.theme */
+
+  /* The constants of the colour math. test/contrast.test.mjs reads them from this file and proves the rules below
+     for seven test accents and for every sRGB hue. Lightness is OKLCH L (0 black, 1 white). */
+  --accent-step-hover: 0.045;    /* hub.css 22: #E65035 (L 0.633) hovers to #D44528 (L 0.590) */
+  --accent-step-press: 0.10;     /* hub.css 23: pressed #B83A21 (L 0.530) */
+  --accent-flip-l: 0.4;          /* an accent darker than this lightens on hover and press instead, so it still moves */
+  --accent-text-max-l: 0.50;     /* light: the accent as text is darkened to this L, which gives 4.5:1 or more on --bg, --bg-2 and --bg-3 for every hue */
+  --accent-text-min-l: 0.66;     /* dark: lightened to this L, 4.5:1 or more on the three dark surfaces for every hue */
+  --on-accent-flip-y: 0.198;     /* text on the accent: white on an accent whose luminance (WCAG Y) is below this, ink from it; the cross-over where white and ink contrast equally */
+  --ink-y: 0.00856;              /* #171717 (hub.css 16) as linear sRGB (its Y); the ink that sits on a light accent */
+  --accent-tint-alpha: 12%;      /* hub.css 24: rgba(230, 80, 53, 0.12) */
+  --accent-ring-alpha: 22%;      /* hub.css 34: rgba(230, 80, 53, 0.22) */
+
+  /* Each shade moves the lightness and scales the chroma with it, as a mix toward black or toward white would
+     (c' = c * L'/L when darkening, c * (1 - L')/(1 - L) when lightening), so the result stays inside the sRGB gamut
+     and looks the same in a browser that clips channels (Chrome) and one that reduces chroma (Safari, Firefox).
+     clamp(-1, (l - flip) * 1000, 1) is +1 for a light accent and -1 for one darker than --accent-flip-l. */
+  /* hover and pressed: a step of L down (hub.css 22-23), or up for a dark accent */
+  --accent-hover: oklch(from var(--accent)
+    calc(l - var(--accent-step-hover) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1))
+    calc(c * min((l - var(--accent-step-hover) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1)) / max(l, 0.001),
+                 (1 - (l - var(--accent-step-hover) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1))) / max(1 - l, 0.001)))
+    h);
+  --accent-press: oklch(from var(--accent)
+    calc(l - var(--accent-step-press) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1))
+    calc(c * min((l - var(--accent-step-press) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1)) / max(l, 0.001),
+                 (1 - (l - var(--accent-step-press) * clamp(-1, (l - var(--accent-flip-l)) * 1000, 1))) / max(1 - l, 0.001)))
+    h);
+  /* tint and focus ring: the accent at the prototype's alphas (hub.css 24, 34) */
+  --accent-tint: rgb(from var(--accent) r g b / var(--accent-tint-alpha));
+  --accent-ring: rgb(from var(--accent) r g b / var(--accent-ring-alpha));
+  --glow: 0 0 0 4px var(--accent-ring);          /* hub.css 34: the focus ring */
+  /* the accent as text: darkened on paper (hub.css 25: "the press step, 5.7:1"), lightened on dark (hub.css 51: "5.15:1 on os-bg") */
+  --accent-text-light: oklch(from var(--accent)
+    min(l, var(--accent-text-max-l))
+    calc(c * min(l, var(--accent-text-max-l)) / max(l, 0.001))
+    h);
+  --accent-text-dark: oklch(from var(--accent)
+    max(l, var(--accent-text-min-l))
+    calc(c * (1 - max(l, var(--accent-text-min-l))) / max(1 - l, 0.001))
+    h);
+  --accent-text: light-dark(var(--accent-text-light), var(--accent-text-dark));
+  /* the text on the accent: white on a dark accent, ink (#171717) on a light one. Decided on the accent's luminance,
+     Y = 0.2126 r + 0.7152 g + 0.0722 b in linear sRGB, the number WCAG contrast is made of, so the pick is always the
+     one that reads better; the clamp's slope (a million) keeps the switch sharp. The three channels are one grey. */
+  --on-accent: color(from var(--accent) srgb-linear
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1)));
+
+  /* ---- faces (ADR-039 D5; hub.css 9-10) ---- */
+  --face-text: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; /* ADR-039 D5: Inter for reading text, forms and tables (departure 1) */
+  --face-mono: "LFT Etica Mono", ui-monospace, Menlo, Consolas, monospace;  /* hub.css 10: codes, numbers, small labels */
+  --face-display: "Kinetika", system-ui, -apple-system, "Segoe UI", sans-serif; /* hub.css 9: titles, buttons, app names */
+  --weight-display: 600;                         /* hub.css 75, 77, 96: Kinetika is always semibold */
+  --weight-text: 400;
+
+  /* ---- type sizes (px, as the prototype) ---- */
+  --type-tiny: 11px;        /* hub.css 112 badge, 281 label */
+  --type-small: 12px;       /* hub.css 78 caps, 105 small button, 198 meta */
+  --type-body: 13px;        /* hub.css 70 */
+  --type-title: 14px;       /* hub.css 152 app name, 197 row title */
+  --type-lead: 15px;        /* Components intro paragraph */
+  --type-h3: 16px;          /* hub.css 162 large avatar, 215 sheet title */
+  --type-h2-small: 20px;    /* Components bottom-sheet title */
+  --type-h2: 22px;          /* hub.css 177 page title, Components section titles */
+  --type-h1: 44px;          /* Components page title */
+  --leading: 1.5;           /* hub.css 70 */
+  --leading-tight: 1.08;    /* Components h1 */
+
+  /* ---- letter-spacing of uppercase labels and titles (em) ---- */
+  --letter-caps: 0.14em;    /* hub.css 78 .cap, 119 field label, 145 tab, 174 eyebrow */
+  --letter-button: 0.04em;  /* hub.css 96 button, 161 avatar */
+  --letter-link: 0.06em;    /* hub.css 114 link, 281 label */
+  --letter-chip: 0.08em;    /* hub.css 141 chip, 152 app name */
+  --letter-seg: 0.1em;      /* hub.css 135 segmented control */
+  --letter-title: -0.01em;  /* hub.css 75 headings */
+  --letter-row-title: 0.01em; /* hub.css 197 row title */
+  --letter-h3: 0.02em;      /* hub.css 215 sheet title */
+
+  /* ---- spacing ---- */
+  --space: 4px;             /* the step; every gap and padding of the prototype is a multiple of 2px, most of 4px (HUB-SHELL §2.5 "4 px spacing") */
+
+  /* ---- sizes of controls and frame ---- */
+  --control: 40px;          /* hub.css 96 button, 108 icon button, 120 field, 170 rail item */
+  --control-sm: 32px;       /* hub.css 105 small button, 111 small icon button, 161 avatar */
+  --control-mid: 36px;      /* hub.css 135 segmented control, 205 menu item */
+  --control-tall: 44px;     /* hub.css 145 tab, 193 compact row */
+  --row: 56px;              /* hub.css 182 */
+  --header: 68px;           /* hub.css 149 */
+  --rail: 240px;            /* hub.css 169 */
+  --sheet: 440px;           /* hub.css 212 */
+  --sheet-wide: 560px;      /* hub.css 213 */
+  --menu-min: 220px;        /* hub.css 202 */
+  --toast: 48px;            /* hub.css 224 */
+  --avatar-lg: 48px;        /* hub.css 162 */
+  --switch-w: 44px;         /* hub.css 130 */
+  --switch-h: 24px;         /* hub.css 130 */
+  --knob: 18px;             /* hub.css 131 switch knob, 127 checkbox, 112 badge */
+  --dot: 8px;               /* hub.css 157 */
+  --icon: 20px;             /* hub.css 89 */
+  --icon-sm: 16px;          /* hub.css 90 */
+  --icon-lg: 24px;          /* hub.css 91 */
+  --tick-w: 26px;           /* hub.css 151 the accent tick */
+  --tick-h: 3px;            /* hub.css 151 */
+  --meter: 4px;             /* hub.css 228 */
+  --hairline: 1px;          /* hub.css 100, 120, 134, 149: every border */
+  --skeleton: 10px;         /* hub.css 86 */
+
+  /* ---- corners ---- */
+  --corner: 0;              /* hub.css 96, 108, 120, 141: "border-radius: 0", square controls */
+  --corner-pill: 999px;     /* hub.css 112 badge, 130 switch, 157 dot, 161 avatar */
+
+  /* ---- motion and states ---- */
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1); /* hub.css 96, 130, 201 */
+  --motion: 180ms;          /* hub.css 96, 130, 201 */
+  --motion-fast: 160ms;     /* hub.css 202 */
+  --motion-slow: 220ms;     /* hub.css 212, 224 */
+  --disabled-opacity: 0.4;  /* hub.css 107 */
+}
+
+/* The theme the shell names. data-theme on <html> is the hub's case; on any element it themes that element's tree. */
+[data-theme="light"] { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="system"] { color-scheme: light dark; }
+
+/* Departures from the prototype, each decided or forced:
+   1. Inter for reading text (--face-text). The prototype sets the mono face on .hub (hub.css 70); ADR-039 D5
+      ("Inter for text", the owner, 23 November 2026) changes that. The mono face keeps codes, numbers and small labels.
+   2. --accent-text is computed, not written. On paper the prototype uses the press step #B83A21 (L 0.530, hub.css 25);
+      the rule here darkens to L 0.50 so that 4.5:1 holds on --bg-3 too (0.53 gives 4.1:1 on paper-3 for some hues).
+      On dark the prototype uses the accent itself (hub.css 51, 5.15:1 on os-bg but 4.4:1 on os-card); the rule
+      lightens to L 0.66. For the default accent both moves are small.
+   3. --on-accent: the prototype writes #FFFFFF on the primary button, the badge and the switch knob (hub.css 97, 112,
+      133). White on #E65035 is 3.8:1, below the 4.5:1 this kit requires of text, so the default accent gets ink text
+      (4.7:1); an accent of luminance below 0.198 gets white.
+   4. --pop-shadow is one declaration for both themes with light-dark() colours: the light shadow is the prototype's
+      (0 12px 32px); the dark one keeps its inset highlight but takes the same offsets (the prototype's are 10px 30px).
+   5. Not carried: --page #FFFFFF (hub.css 38, the viewer's printed page) and the viewer's own fixed dark colours
+      (hub.css 254-261), which belong to one app, not to the kit. */

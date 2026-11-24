@@ -1,0 +1,28 @@
+{
+  "name": "@brax-hub/ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The shared UI kit of Brax Hub apps (ADR-039): the file of values, the Tailwind 4 theme and, from FE02, the parts.",
+  "engines": { "node": ">=22.18" },
+  "files": ["values.css", "theme.css", "ui.css", "fonts/", "README.md"],
+  "exports": {
+    "./ui.css": "./ui.css",
+    "./theme.css": "./theme.css",
+    "./values.css": "./values.css"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "tailwindcss": "4.3.5",
+    "vite": "8.3.8"
+  }
+}

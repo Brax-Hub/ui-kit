@@ -1,0 +1,4 @@
+/* Brax Hub UI kit: what an app imports. Inter comes from the pinned @fontsource-variable/inter package; the two
+   licensed faces (Kinetika, LFT Etica Mono) come from the @font-face layer the hub serves (fonts/README.md). */
+@import "@fontsource-variable/inter";
+@import "./theme.css";
