@@ -93,7 +93,7 @@ export function readConstants(css) {
   return {
     stepHover: num("accent-step-hover"), stepPress: num("accent-step-press"), flipL: num("accent-flip-l"),
     textMaxL: num("accent-text-max-l"), textMinL: num("accent-text-min-l"), onAccentFlipY: num("on-accent-flip-y"),
-    inkY: num("ink-y"), tintAlpha: num("accent-tint-alpha"), ringAlpha: num("accent-ring-alpha"),
+    inkY: num("ink-y"), controlFlipY: num("on-accent-control-flip-y"), tintAlpha: num("accent-tint-alpha"), ringAlpha: num("accent-ring-alpha"),
     accent: accent[1].toUpperCase(),
     bg: pair("bg"), bg2: pair("bg-2"), bg3: pair("bg-3"), ink1: pair("ink-1"),
   };
@@ -110,6 +110,7 @@ export function derive(accentHex, k, mapping = "reduce") {
   const shade = (L2) => to([L2, scaled(L2), h]);
   const Y = luminance(hexToRgb(accentHex).map(lin));
   const onY = k.inkY + (1 - k.inkY) * Math.max(0, Math.min(1, (k.onAccentFlipY - Y) * 1000000)); // --on-accent, in linear sRGB
+  const controlY = k.inkY + (1 - k.inkY) * Math.max(0, Math.min(1, (k.controlFlipY - Y) * 1000000)); // --on-accent-control
   return {
     accent: accentHex.toUpperCase(),
     L, C, h,
@@ -118,6 +119,7 @@ export function derive(accentHex, k, mapping = "reduce") {
     textLight: shade(Math.min(L, k.textMaxL)),                      // --accent-text-light
     textDark: shade(Math.max(L, k.textMinL)),                       // --accent-text-dark
     onAccent: rgbToHex([onY, onY, onY].map(gam)),                   // --on-accent
+    control: rgbToHex([controlY, controlY, controlY].map(gam)),     // --on-accent-control: the switch knob
     tintAlpha: k.tintAlpha,                                         // --accent-tint: the accent at this alpha
     ringAlpha: k.ringAlpha,                                         // --accent-ring
   };

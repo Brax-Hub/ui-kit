@@ -65,10 +65,10 @@ function measure() {
       tintContrast: Math.min(...bgs.map((b) => ratio(ink, overBg(tint, b)))),
     };
   }
-  const accent = computed("light", "accent"), on = computed("light", "on-accent");
+  const accent = computed("light", "accent"), on = computed("light", "on-accent"), knob = computed("light", "on-accent-control");
   return {
     accent: hex(accent), hover: hex(computed("light", "accent-hover")), press: hex(computed("light", "accent-press")),
-    onAccent: hex(on), onAccentContrast: ratio(on, accent), ...m,
+    onAccent: hex(on), onAccentContrast: ratio(on, accent), knob: hex(knob), knobContrast: ratio(knob, accent), ...m,
   };
 }
 
@@ -79,6 +79,7 @@ function readout() {
   set("r-text-light", `${m.light.text} · ${r2(m.light.textContrast)}:1`);
   set("r-text-dark", `${m.dark.text} · ${r2(m.dark.textContrast)}:1`);
   set("r-on", `${isWhite(m.onAccent) ? "white" : "ink"} · ${r2(m.onAccentContrast)}:1`);
+  set("r-knob", `${isWhite(m.knob) ? "white" : "ink"} · ${r2(m.knobContrast)}:1 ${m.knobContrast >= 3 ? "passes 3:1" : "below 3:1"}`);
   set("r-tint", `ink on tint ${r2(m.light.tintContrast)}:1 light · ${r2(m.dark.tintContrast)}:1 dark`);
   for (const el of document.querySelectorAll("[data-ok]")) {
     const v = Number(el.dataset.ok === "on" ? m.onAccentContrast : el.dataset.ok === "light" ? m.light.textContrast : m.dark.textContrast);
@@ -100,6 +101,7 @@ function table() {
       `<td class="${body.dataset.cellClass}">${m.light.text} <span class="${body.dataset.metaClass}">${r2(m.light.textContrast)}:1</span></td>` +
       `<td class="${body.dataset.cellClass}">${m.dark.text} <span class="${body.dataset.metaClass}">${r2(m.dark.textContrast)}:1</span></td>` +
       `<td class="${body.dataset.cellClass}">${isWhite(m.onAccent) ? "white" : "ink"} <span class="${body.dataset.metaClass}">${r2(m.onAccentContrast)}:1</span></td>` +
+      `<td class="${body.dataset.cellClass}">${isWhite(m.knob) ? "white" : "ink"} <span class="${body.dataset.metaClass}">${r2(m.knobContrast)}:1</span></td>` +
       `<td class="${body.dataset.cellClass}">${r2(m.light.tintContrast)}:1 · ${r2(m.dark.tintContrast)}:1</td></tr>`);
   }
   if (current) html.style.setProperty("--accent", current); else html.style.removeProperty("--accent");

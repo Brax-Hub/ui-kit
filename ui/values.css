@@ -75,6 +75,7 @@
   --accent-text-max-l: 0.50;     /* light: the accent as text is darkened to this L, which gives 4.5:1 or more on --bg, --bg-2 and --bg-3 for every hue */
   --accent-text-min-l: 0.66;     /* dark: lightened to this L, 4.5:1 or more on the three dark surfaces for every hue */
   --on-accent-flip-y: 0.198;     /* text on the accent: white on an accent whose luminance (WCAG Y) is below this, ink from it; the cross-over where white and ink contrast equally */
+  --on-accent-control-flip-y: 0.30; /* a control mark on the accent: white while white still reaches 3:1 (Y at or below 0.30), ink above */
   --ink-y: 0.00856;              /* #171717 (hub.css 16) as linear sRGB (its Y); the ink that sits on a light accent */
   --accent-tint-alpha: 12%;      /* hub.css 24: rgba(230, 80, 53, 0.12) */
   --accent-ring-alpha: 22%;      /* hub.css 34: rgba(230, 80, 53, 0.22) */
@@ -115,6 +116,18 @@
     calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
     calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
     calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1)));
+
+  /* The colour of a control mark drawn on the accent: the switch's knob (hub.css 133, white), the checkbox's tick.
+     Decided by the owner on 24 November 2026, asked "Should the switch knob keep the prototype's white on the orange
+     accent?" (the FE01 tester's recommendation: yes, a knob is a control, where 3:1 applies, and white on #E65035 is
+     3.78:1): "Yes, white knob". The rule the kit follows from that: text on the accent needs 4.5:1 and takes
+     --on-accent (ink on the default accent); a control mark on the accent needs 3:1 and takes --on-accent-control,
+     which is white wherever white reaches 3:1 and falls back to ink, by the same luminance switch as the text colour
+     with the 3:1 threshold, on a light accent (a yellow, white) so the knob stays visible there. */
+  --on-accent-control: color(from var(--accent) srgb-linear
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-control-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-control-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
+    calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-control-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1)));
 
   /* ---- faces (ADR-039 D5; hub.css 9-10) ---- */
   --face-text: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; /* ADR-039 D5: Inter for reading text, forms and tables (departure 1) */
@@ -199,9 +212,10 @@
       the rule here darkens to L 0.50 so that 4.5:1 holds on --bg-3 too (0.53 gives 4.1:1 on paper-3 for some hues).
       On dark the prototype uses the accent itself (hub.css 51, 5.15:1 on os-bg but 4.4:1 on os-card); the rule
       lightens to L 0.66. For the default accent both moves are small.
-   3. --on-accent: the prototype writes #FFFFFF on the primary button, the badge and the switch knob (hub.css 97, 112,
-      133). White on #E65035 is 3.8:1, below the 4.5:1 this kit requires of text, so the default accent gets ink text
-      (4.7:1); an accent of luminance below 0.198 gets white.
+   3. --on-accent: the prototype writes #FFFFFF on the primary button and the badge (hub.css 97, 112). White on
+      #E65035 is 3.8:1, below the 4.5:1 this kit requires of text, so the default accent gets ink text (4.7:1); an
+      accent of luminance below 0.198 gets white. The switch knob (hub.css 133) keeps the prototype's white through
+      --on-accent-control, by the owner's decision of 24 November 2026 ("Yes, white knob"): a control mark needs 3:1.
    4. --pop-shadow is one declaration for both themes with light-dark() colours: the light shadow is the prototype's
       (0 12px 32px); the dark one keeps its inset highlight but takes the same offsets (the prototype's are 10px 30px).
    5. Not carried: --page #FFFFFF (hub.css 38, the viewer's printed page) and the viewer's own fixed dark colours

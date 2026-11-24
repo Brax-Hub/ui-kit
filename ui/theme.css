@@ -53,6 +53,7 @@
   --color-accent-ring: var(--accent-ring);
   --color-accent-text: var(--accent-text);
   --color-on-accent: var(--on-accent);
+  --color-on-accent-control: var(--on-accent-control);
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-inherit: inherit;

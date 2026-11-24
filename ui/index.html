@@ -39,13 +39,13 @@
     <span data-probe="bg" class="bg-bg"></span><span data-probe="bg-2" class="bg-bg-2"></span><span data-probe="bg-3" class="bg-bg-3"></span>
     <span data-probe="ink-1" class="bg-ink-1"></span><span data-probe="accent" class="bg-accent"></span><span data-probe="accent-hover" class="bg-accent-hover"></span>
     <span data-probe="accent-press" class="bg-accent-press"></span><span data-probe="accent-tint" class="bg-accent-tint"></span>
-    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span>
+    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span><span data-probe="on-accent-control" class="bg-on-accent-control"></span>
   </div>
   <div data-theme="dark">
     <span data-probe="bg" class="bg-bg"></span><span data-probe="bg-2" class="bg-bg-2"></span><span data-probe="bg-3" class="bg-bg-3"></span>
     <span data-probe="ink-1" class="bg-ink-1"></span><span data-probe="accent" class="bg-accent"></span><span data-probe="accent-hover" class="bg-accent-hover"></span>
     <span data-probe="accent-press" class="bg-accent-press"></span><span data-probe="accent-tint" class="bg-accent-tint"></span>
-    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span>
+    <span data-probe="accent-text" class="bg-accent-text"></span><span data-probe="on-accent" class="bg-on-accent"></span><span data-probe="on-accent-control" class="bg-on-accent-control"></span>
   </div>
 </div>
 
@@ -81,7 +81,7 @@
         <span class="font-mono text-small text-ink-3"><span id="r-text-light"></span> <span data-ok="light"></span><br><span id="r-text-dark"></span> <span data-ok="dark"></span></span></div>
       <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Text on the accent</span>
         <div class="flex"><span class="flex h-control flex-1 items-center justify-center bg-accent font-display font-strong text-body uppercase tracking-button text-on-accent">Upload</span></div>
-        <span class="font-mono text-small text-ink-3"><span id="r-on"></span> <span data-ok="on"></span></span></div>
+        <span class="font-mono text-small text-ink-3"><span id="r-on"></span> <span data-ok="on"></span><br>knob <span id="r-knob"></span></span></div>
       <div class="flex flex-col gap-2"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Tint and focus ring</span>
         <div class="flex gap-3"><span class="flex h-control flex-1 items-center justify-center bg-accent-tint text-body">Selected row</span><span class="h-control w-control shadow-glow border border-accent bg-bg"></span></div>
         <span class="font-mono text-small text-ink-3" id="r-tint"></span></div>
@@ -125,7 +125,7 @@
         <span class="inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-share"/></svg></span>
         <span class="inline-flex size-control shrink-0 items-center justify-center bg-accent-tint text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-grid"/></svg></span>
         <span class="relative inline-flex size-control shrink-0 items-center justify-center text-ink-2 hover:bg-wash hover:text-ink-1"><svg class="size-icon shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-bell"/></svg><span class="absolute top-1 right-0.75 inline-flex h-knob min-w-knob items-center justify-center rounded-pill bg-accent px-1.25 font-mono text-tiny text-on-accent">3</span></span>
-        <span class="ml-3 text-small text-ink-3">Square. Primary is the one verb per screen. Hover darkens, no movement. The text on the primary is white or ink, whichever reads.</span>
+        <span class="ml-3 text-small text-ink-3">Square. Primary is the one verb per screen. Hover darkens, no movement. The text on the primary is white or ink, whichever reads 4.5:1; the switch knob is white wherever white reads 3:1.</span>
       </div>
     </section>
 
@@ -139,7 +139,7 @@
         <label class="flex flex-col gap-1.5"><span class="font-mono text-small uppercase tracking-caps text-ink-3">Role</span><select class="h-control w-full cursor-pointer rounded-control border border-line-strong bg-bg px-3 text-body text-ink-1 focus:border-accent focus:shadow-glow focus:outline-none"><option>Editor</option><option>Commenter</option><option>Viewer</option></select></label>
       </div>
       <div class="flex flex-wrap items-center gap-6">
-        <span class="flex h-switch-h w-switch-w shrink-0 cursor-pointer rounded-pill bg-accent p-0.75 transition-colors"><i class="block size-knob translate-x-5 rounded-pill bg-on-accent transition-transform"></i></span>
+        <span class="flex h-switch-h w-switch-w shrink-0 cursor-pointer rounded-pill bg-accent p-0.75 transition-colors"><i class="block size-knob translate-x-5 rounded-pill bg-on-accent-control transition-transform"></i></span>
         <span class="flex h-switch-h w-switch-w shrink-0 cursor-pointer rounded-pill bg-bg-3 p-0.75 transition-colors"><i class="block size-knob rounded-pill bg-ink-4 transition-transform"></i></span>
         <label class="flex cursor-pointer items-center gap-2.5"><input type="checkbox" checked class="m-0 size-knob accent-accent"><span>Notify people</span></label>
         <div class="flex w-70 border border-line-strong"><button type="button" class="h-control-mid flex-1 cursor-pointer bg-accent-tint px-3 font-mono text-small uppercase tracking-seg text-ink-1">Light</button><button type="button" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3">Dark</button><button type="button" class="h-control-mid flex-1 cursor-pointer border-l border-line-strong bg-bg px-3 font-mono text-small uppercase tracking-seg text-ink-3">System</button></div>
@@ -247,7 +247,7 @@
   <section class="flex flex-col gap-4.5">
     <div class="flex items-center gap-3.5"><span class="inline-block h-tick-h w-tick-w bg-accent"></span><h2 class="text-h2">Seven accents, measured in this browser</h2></div>
     <table class="w-full border-t border-line text-body">
-      <thead><tr class="font-mono text-small uppercase tracking-caps text-ink-3"><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Accent</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Hover</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Pressed</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, light</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, dark</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Text on it</th><th class="border-b border-line py-2.5 text-left font-regular">Ink on tint</th></tr></thead>
+      <thead><tr class="font-mono text-small uppercase tracking-caps text-ink-3"><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Accent</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Hover</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Pressed</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, light</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">As text, dark</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Text on it</th><th class="border-b border-line py-2.5 pr-4 text-left font-regular">Knob on it</th><th class="border-b border-line py-2.5 text-left font-regular">Ink on tint</th></tr></thead>
       <tbody id="accent-table" data-row-class="font-mono text-small" data-cell-class="border-b border-line py-2.5 pr-4 align-middle" data-swatch-class="mr-2 inline-block size-knob align-middle bg-accent" data-meta-class="text-ink-3"></tbody>
     </table>
     <p class="text-small text-ink-3">Contrast is the worst of the three surfaces of each theme (bg, bg-2, bg-3). The same numbers come from <span class="font-mono">npm test</span> without a browser.</p>

@@ -1,6 +1,7 @@
 /* FE01: every shade the kit derives from an accent stays readable. The rules (values.css, "the accent and its shades"):
    - the accent as text reaches 4.5:1 on each background of its theme: --bg, --bg-2 and --bg-3, light and dark;
    - the text on the accent (white or ink) reaches 4.5:1 on the accent, and is the better of the two;
+   - the control mark on the accent (the switch knob) is white wherever white reaches 3:1, and reaches 3:1 always;
    - --ink-1 stays readable on the accent tint over each background;
    - hover and pressed differ from the accent by the steps the file names and stay inside [0, 1] lightness.
    Each rule is checked under both ways a browser maps an out-of-gamut colour (chroma reduction, channel clipping),
@@ -15,6 +16,7 @@ import { contrastHex, derive, hexToOklch, hexToRgb, isWhite, lin, luminance, okl
 const css = readFileSync(fileURLToPath(new URL("../values.css", import.meta.url)), "utf8");
 const k = readConstants(css);
 const MIN = 4.5;
+const MIN_CONTROL = 3;
 const r2 = (x) => Math.round(x * 100) / 100;
 
 function check(hex, mapping) {
@@ -24,9 +26,10 @@ function check(hex, mapping) {
   const textOnDark = Math.min(...darkBgs.map((b) => contrastHex(d.textDark, b)));
   const onAccentContrast = contrastHex(d.onAccent, hex);
   const white = contrastHex("#FFFFFF", hex), ink = contrastHex(k.ink1.light, hex);
+  const controlContrast = contrastHex(d.control, hex);
   const tintLight = Math.min(...lightBgs.map((b) => contrast2(hexToRgb(k.ink1.light).map(lin), over(hex, k.tintAlpha, b).map(lin))));
   const tintDark = Math.min(...darkBgs.map((b) => contrast2(hexToRgb(k.ink1.dark).map(lin), over(hex, k.tintAlpha, b).map(lin))));
-  return { ...d, textOnLight, textOnDark, onAccentContrast, white, ink, tintLight, tintDark };
+  return { ...d, textOnLight, textOnDark, onAccentContrast, controlContrast, white, ink, tintLight, tintDark };
 }
 const contrast2 = (a, b) => { const [x, y] = [luminance(a), luminance(b)]; return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 
@@ -53,6 +56,8 @@ for (const { hex, name } of accents) {
       assert.ok(r.textOnDark >= MIN, `accent as text on dark surfaces: ${r2(r.textOnDark)} (${r.textDark})`);
       assert.ok(r.onAccentContrast >= MIN, `text on the accent: ${r2(r.onAccentContrast)} (${r.onAccent})`);
       assert.ok(r.onAccentContrast >= Math.max(r.white, r.ink) - 0.01, "the text on the accent is the better of white and ink");
+      assert.ok(r.controlContrast >= MIN_CONTROL, `the knob on the accent: ${r2(r.controlContrast)} (${r.control})`);
+      assert.equal(isWhite(r.control), r.white >= MIN_CONTROL, `the knob is white exactly when white reaches 3:1 (white is ${r2(r.white)})`);
       assert.ok(r.tintLight >= MIN && r.tintDark >= MIN, `ink on the tint: ${r2(r.tintLight)} / ${r2(r.tintDark)}`);
       const dl = (a) => Math.abs(hexToOklch(a)[0] - r.L);
       assert.ok(dl(r.hover) >= k.stepHover - 0.02, `hover moved only ${r2(dl(r.hover))} in L`);
@@ -63,7 +68,7 @@ for (const { hex, name } of accents) {
 }
 
 test("every sRGB hue: the accent-as-text caps and the on-accent choice hold", () => {
-  let worstLight = 9, worstDark = 9, wrongPick = 0, n = 0;
+  let worstLight = 9, worstDark = 9, worstControl = 9, wrongPick = 0, n = 0;
   for (let h = 0; h < 360; h += 3) {
     for (let L = 0.15; L <= 0.95; L += 0.05) {
       for (let C = 0; C <= 0.33; C += 0.03) {
@@ -75,6 +80,7 @@ test("every sRGB hue: the accent-as-text caps and the on-accent choice hold", ()
           n++;
           worstLight = Math.min(worstLight, r.textOnLight);
           worstDark = Math.min(worstDark, r.textOnDark);
+          worstControl = Math.min(worstControl, r.controlContrast);
           if (r.onAccentContrast < Math.max(r.white, r.ink) - 0.01) wrongPick++;
         }
       }
@@ -84,13 +90,14 @@ test("every sRGB hue: the accent-as-text caps and the on-accent choice hold", ()
   assert.ok(worstLight >= MIN, `worst accent-as-text contrast on light surfaces over all hues: ${r2(worstLight)}`);
   assert.ok(worstDark >= MIN, `worst accent-as-text contrast on dark surfaces over all hues: ${r2(worstDark)}`);
   assert.equal(wrongPick, 0, "the text on the accent is always the better of white and ink");
+  assert.ok(worstControl >= MIN_CONTROL - 0.01, `worst knob contrast over all hues: ${r2(worstControl)}`);
 });
 
 test("report", () => {
   const line = (r) =>
-    `| ${r.hex} | ${r.name} | ${r.hover} | ${r.press} | ${r.textLight} (${r2(r.textOnLight)}) | ${r.textDark} (${r2(r.textOnDark)}) | ${isWhite(r.onAccent) ? "white" : "ink"} (${r2(r.onAccentContrast)}) | ${r2(r.tintLight)} / ${r2(r.tintDark)} |`;
-  console.log("\n| Accent | | Hover | Pressed | As text, light (worst of 3 surfaces) | As text, dark (worst of 3) | Text on it | Ink on tint, light / dark |");
-  console.log("| --- | --- | --- | --- | --- | --- | --- | --- |");
+    `| ${r.hex} | ${r.name} | ${r.hover} | ${r.press} | ${r.textLight} (${r2(r.textOnLight)}) | ${r.textDark} (${r2(r.textOnDark)}) | ${isWhite(r.onAccent) ? "white" : "ink"} (${r2(r.onAccentContrast)}) | ${isWhite(r.control) ? "white" : "ink"} (${r2(r.controlContrast)}; white would be ${r2(r.white)}) | ${r2(r.tintLight)} / ${r2(r.tintDark)} |`;
+  console.log("\n| Accent | | Hover | Pressed | As text, light (worst of 3 surfaces) | As text, dark (worst of 3) | Text on it (4.5:1) | Knob on it (3:1) | Ink on tint, light / dark |");
+  console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const r of rows) console.log(line(r));
   console.log();
 });
