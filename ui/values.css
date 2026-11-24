@@ -145,9 +145,12 @@
   --type-h3: 16px;          /* hub.css 162 large avatar, 215 sheet title */
   --type-h2-small: 20px;    /* Components bottom-sheet title */
   --type-h2: 22px;          /* hub.css 177 page title, Components section titles */
+  --type-h1-page: 24px;     /* admin.css 7: the page title of Your account and Hub admin */
+  --type-h2-section: 17px;  /* admin.css 11: a section title on those pages */
+  --type-count: 28px;       /* admin.css 81: a count in the display face, tabular, 0.02em */
   --type-h1: 44px;          /* Components page title */
   --leading: 1.5;           /* hub.css 70 */
-  --leading-tight: 1.08;    /* Components h1 */
+  --leading-heading: 1.08;    /* Components h1 */
 
   /* ---- letter-spacing of uppercase labels and titles (em) ---- */
   --letter-caps: 0.14em;    /* hub.css 78 .cap, 119 field label, 145 tab, 174 eyebrow */
@@ -158,6 +161,7 @@
   --letter-title: -0.01em;  /* hub.css 75 headings */
   --letter-row-title: 0.01em; /* hub.css 197 row title */
   --letter-h3: 0.02em;      /* hub.css 215 sheet title */
+  --letter-count: 0.02em;   /* admin.css 81 */
 
   /* ---- spacing ---- */
   --space: 4px;             /* the step; every gap and padding of the prototype is a multiple of 2px, most of 4px (HUB-SHELL §2.5 "4 px spacing") */
@@ -168,6 +172,10 @@
   --control-mid: 36px;      /* hub.css 135 segmented control, 205 menu item */
   --control-tall: 44px;     /* hub.css 145 tab, 193 compact row */
   --row: 56px;              /* hub.css 182 */
+  --row-table: 64px;        /* admin.css 23: a table row; admin.css 26: its header row is --control (40px) */
+  --status-label: 24px;     /* admin.css 42: a status label (tint and dot) */
+  --kv-label: 220px;        /* admin.css 18: the label column of a label/value row */
+  --dot-sm: 6px;            /* admin.css 43, store.css 47: the dot inside a status label */
   --header: 68px;           /* hub.css 149 */
   --rail: 240px;            /* hub.css 169 */
   --sheet: 440px;           /* hub.css 212 */
