@@ -8,7 +8,9 @@ import { cn } from "../lib/cn.ts";
    212-218): 440px (560 wide), full height, hairline on its left, a 68px header with the title in the display face at
    16px, a scrolling body with 24px padding, a footer with the buttons right. The scrim is hub.css 32. The shadcn API
    (DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose) is kept so an app moves
-   its imports without rewriting; DialogBody is the scrolling middle. sheet.tsx adds the `side` and `wide` choices. */
+   its imports without rewriting; DialogBody is the scrolling middle. sheet.tsx adds the `side` and `wide` choices.
+   Decided by the owner on 24 November 2026, asked "Should dialogs be the prototype's right-hand sheet, or the centred
+   box the apps have today?": "Right-hand sheet". */
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogPortal = DialogPrimitive.Portal;

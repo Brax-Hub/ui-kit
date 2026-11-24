@@ -5,7 +5,8 @@ import { buttonVariants } from "./button.tsx";
 
 /* A confirmation is the prototype's bottom sheet (.bsheet, hub.css 219; Components "Empty trash?"): the full width at
    the bottom, hairline above, 28px 32px padding, the title in the display face at 16px with its one line of meta,
-   the buttons on the same row, Cancel as a ghost and the action as the primary, both small. */
+   the buttons on the same row, Cancel as a ghost and the action as the primary, both small. The owner confirmed the
+   sheets over centred boxes on 24 November 2026 ("Right-hand sheet"; parts/dialog.tsx). */
 export const AlertDialog = AlertDialogPrimitive.Root;
 export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 export const AlertDialogPortal = AlertDialogPrimitive.Portal;
