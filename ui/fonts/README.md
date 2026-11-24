@@ -12,11 +12,16 @@ Kinetika and LFT Etica Mono are licensed to Brax. They are not in this repositor
 files and not as data URIs (the owner's prototype embeds them that way; that copy stays on his PC). Every stack in
 `values.css` ends in system fallbacks, so a page without the layer still reads, in system-ui and the system's mono face.
 
-## The `@font-face` layer the hub serves (proposed)
+## The `@font-face` layer the hub serves (decided)
+
+Decided by the owner on 24 November 2026, asked "Should the hub serve Kinetika and LFT Etica Mono as one stylesheet,
+`/hub/assets/fonts/hub-fonts.css`, that every app links?": **"Yes, hub serves them"**. Recorded in `Brax-Hub/contracts`
+as ADR-039 "Open" 8 and as task FE08 (the hub server serves the stylesheet; contracts pull request 177, merged the
+same day).
 
 HUB-SHELL §2.5 has the hub self-host its fonts under `/hub/assets/fonts/` so that `font-src 'self'` holds, and §17 R8
 records that the two faces are committed to the hub server's private repository and ship in its image. So the hub is the
-one place that has them, and a page gets them by linking one stylesheet the hub serves:
+one place that has them, and a page gets them by linking the one stylesheet FE08 adds:
 
 ```html
 <link rel="stylesheet" href="/hub/assets/fonts/hub-fonts.css">
@@ -28,9 +33,3 @@ Nothing in the kit changes when the hub adds or renames a weight; the kit only n
 
 A module in its frame on the hub is same-origin (HUB-SHELL §4), so the link above works there as it is. An app served
 on its own, outside the hub, shows the fallbacks unless it carries the faces itself, which the licence must allow.
-
-## The question put to the owner in the FE01 pull request
-
-Should the two licensed faces be served by the hub, as above (recommended), or copied into each app's build from a
-private package? Serving them from the hub keeps one licensed copy, keeps `font-src 'self'`, and lets every module and
-app pick them up with one link.
