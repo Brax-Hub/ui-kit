@@ -76,9 +76,11 @@
   --text-h2-small: var(--type-h2-small);
   --text-h2: var(--type-h2);
   --text-h1: var(--type-h1);
-  --text-h1--line-height: var(--leading-tight);
+  --text-h1--line-height: var(--leading-heading);
+  --text-h1-page: var(--type-h1-page);
+  --text-h2-section: var(--type-h2-section);
   --leading-body: var(--leading);
-  --leading-tight: var(--leading-tight);
+  --leading-heading: var(--leading-heading);
 
   /* letter-spacing: tracking-caps, tracking-button … */
   --tracking-caps: var(--letter-caps);
@@ -97,6 +99,10 @@
   --spacing-control-mid: var(--control-mid);
   --spacing-control-tall: var(--control-tall);
   --spacing-row: var(--row);
+  --spacing-row-table: var(--row-table);
+  --spacing-status-label: var(--status-label);
+  --spacing-kv-label: var(--kv-label);
+  --spacing-dot-sm: var(--dot-sm);
   --spacing-header: var(--header);
   --spacing-rail: var(--rail);
   --spacing-sheet: var(--sheet);
@@ -127,6 +133,16 @@
   --ease-hub: var(--motion-ease);
   --default-transition-duration: var(--motion);
   --default-transition-timing-function: var(--motion-ease);
+
+  /* motion of popovers, sheets and toasts (hub.css 304-306): animate-fade-in, animate-slide-in, animate-slide-up */
+  --animate-fade-in: fade-in var(--motion) var(--motion-ease);
+  --animate-slide-in: slide-in var(--motion-slow) var(--motion-ease);
+  --animate-slide-up: slide-up var(--motion-slow) var(--motion-ease);
+  --animate-fade-out: fade-out var(--motion-fast) var(--motion-ease);
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes slide-in { from { opacity: 0; transform: translateX(calc(var(--space) * 6)); } to { opacity: 1; transform: none; } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(calc(var(--space) * 4)); } to { opacity: 1; transform: none; } }
 }
 
 /* Element defaults the prototype sets on .hub (hub.css 70-76): the kit's base, on every page that imports it. */

@@ -1,12 +1,14 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 
-/* The sample page (index.html) is the tester's evidence for FE01. With HUB_PROTOTYPE set (.env.example) to the folder
-   of the owner's prototype, the dev server also serves that folder at /prototype/, so Components.dc.html opens beside
-   the sample from one server, and serves the prototype's two @font-face rules (its licensed faces, as data URIs) at
-   /prototype-fonts.css so the sample shows them. Nothing of the prototype is copied or built into the kit. */
+/* The sample pages (index.html for the values and theme, parts.html for the parts) are the tester's evidence. With
+   HUB_PROTOTYPE set (.env.example) to the folder of the owner's prototype, the dev server also serves that folder at
+   /prototype/, so Components.dc.html opens beside the samples from one server, and serves the prototype's two
+   @font-face rules (its licensed faces, as data URIs) at /prototype-fonts.css so the samples show them. Nothing of
+   the prototype is copied or built into the kit. */
 const types = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".png": "image/png", ".svg": "image/svg+xml", ".json": "application/json", ".txt": "text/plain; charset=utf-8",
@@ -49,8 +51,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "HUB_");
   const prototype = env.HUB_PROTOTYPE || process.env.HUB_PROTOTYPE;
   return {
-    plugins: [tailwindcss({ optimize: false }), ...(prototype ? [servePrototype(prototype)] : [])],
-    build: { cssTarget: browsers },
+    plugins: [react(), tailwindcss({ optimize: false }), ...(prototype ? [servePrototype(prototype)] : [])],
+    build: { cssTarget: browsers, rollupOptions: { input: ["index.html", "parts.html", "compare.html"] } },
     server: { port: 4181, strictPort: true },
   };
 });
