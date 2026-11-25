@@ -56,7 +56,15 @@ Considered and not chosen:
 - **The address of an archive of the tag.** GitHub does not promise the bytes of a generated archive stay the same,
   and the lock file pins those bytes.
 
-What it costs: wherever `npm ci` runs, git must be able to read this repository.
+What it costs, two things.
+
+**The app says it wants a git dependency.** npm 12 fetches nothing from git unless the project opts in ("As of npm 12
+the default is `none`", its own words for `allow-git`), so the app's `.npmrc` has one line, `allow-git=root`: the git
+dependencies its own `package.json` names, and no other. Found here on npm 12.2.0, where the install is refused
+without it (`EALLOWGIT`); npm 10, which Node 22 carries, does not know the setting and installs either way. This is
+npm leaning away from git dependencies, and it is the one thing that would tip the choice to a registry later.
+
+**Wherever `npm ci` runs, git must be able to read this repository.**
 
 | Where | What it needs |
 | --- | --- |
@@ -72,7 +80,7 @@ The token is the owner's to make (one for the organisation). If the owner later 
 An app made with `node kit/init.mjs <slug> <dir>` has all of them. For an app that exists, they are:
 
 1. **`package.json`**: the dependency above, and the check in the gate. No Tailwind, Radix, `tailwind-merge`, font
-   package or shadcn file of the app's own: the kit brings what it needs.
+   package or shadcn file of the app's own: the kit brings what it needs. And **`.npmrc`**: `allow-git=root`.
 
    ```json
    "scripts": {

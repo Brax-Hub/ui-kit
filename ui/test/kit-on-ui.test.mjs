@@ -78,7 +78,12 @@ test("an app made by kit/init.mjs names the UI kit by its tag and passes the che
   const pkg = JSON.parse(readFileSync(join(target, "package.json"), "utf8"));
   assert.equal(pkg.dependencies["@brax-hub/ui"], `git+https://github.com/Brax-Hub/ui-kit.git#ui-v${rootPackage.version}`);
   assert.match(pkg.scripts.gate, /npm run ui-check/, "the app's gate does not run the check");
-  assert.ok(!existsSync(join(target, ".npmrc")) && !existsSync(join(target, "package-lock.json")), "the sample's .npmrc or lock file went into the app");
+  // npm 12 fetches nothing from git unless the project says so; the sample's own .npmrc (install-links) stays behind
+  const npmrc = readFileSync(join(target, ".npmrc"), "utf8");
+  assert.match(npmrc, /^allow-git=root$/m, "the app's .npmrc does not let npm fetch the UI kit from git");
+  assert.doesNotMatch(npmrc, /install-links/, "the sample's .npmrc went into the app");
+  assert.ok(!existsSync(join(target, "package-lock.json")), "the sample's lock file went into the app");
+  assert.match(readFileSync(join(target, "Dockerfile"), "utf8"), /COPY package\.json package-lock\.json \.npmrc \.\//, "the image build does not take the app's .npmrc");
   assert.deepEqual(checkApp(target), []);
 });
 

@@ -9,13 +9,14 @@
 # build stage needs git, and a token that may read that repository. The token comes in as a build secret,
 #   docker build --secret id=ui_kit_token,env=UI_KIT_TOKEN .
 # and is handed to git through the environment of that one command: it is in no layer, no file and no later stage.
-# Needs BuildKit, which Docker has used by default since version 23.
+# Needs BuildKit, which Docker has used by default since version 23. The app's .npmrc comes along because it is what
+# lets npm fetch from git at all (allow-git=root).
 FROM node:22-bookworm-slim AS build
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=secret,id=ui_kit_token \
     TOKEN="$(cat /run/secrets/ui_kit_token 2>/dev/null || true)" \
  && GIT_CONFIG_COUNT=2 \

@@ -68,8 +68,9 @@ jobs:
         run: |
           mkdir "$RUNNER_TEMP/app" && cd "$RUNNER_TEMP/app"
           npm init -y > /dev/null
+          echo "allow-git=root" > .npmrc   # as an app made by kit/init.mjs has: npm 12 fetches nothing from git without it
           npm install --no-audit --no-fund "git+https://github.com/Brax-Hub/ui-kit.git#$REF" react react-dom vite
-          grep '"resolved": "git' package-lock.json
+          grep -A2 '"resolved": "git' package-lock.json
           cd node_modules/@brax-hub/ui
           test -f ui/values.css -a -f ui/theme.css -a -f ui/ui.css -a -f ui/parts/index.ts -a -f ui/lib/hub.ts -a -f ui/check/cli.mjs
           test ! -e kit -a ! -e ui/test -a ! -e ui/sample -a ! -e node_modules

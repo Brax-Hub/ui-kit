@@ -18,9 +18,10 @@
 //
 // The UI kit. kit/example takes it from this repository's working tree ("@brax-hub/ui": "file:../..", with
 // install-links in its .npmrc), which only the kit's own sample may do. A new app names the tag of the version in this
-// checkout instead, git+https://github.com/Brax-Hub/ui-kit.git#ui-v<version>, and gets neither the sample's .npmrc nor
-// its lock file (`npm install` writes the app's own). UI_KIT_REF=<tag or commit> names another ref, for instance a
-// commit before the owner has made the tag. ui/README.md, "Taking the UI kit into an app".
+// checkout instead, git+https://github.com/Brax-Hub/ui-kit.git#ui-v<version>, with an .npmrc that lets npm fetch it
+// (allow-git=root), and gets neither the sample's .npmrc nor its lock file (`npm install` writes the app's own).
+// UI_KIT_REF=<tag or commit> names another ref, for instance a commit before the owner has made the tag.
+// ui/README.md, "Taking the UI kit into an app".
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -76,6 +77,12 @@ if (mode === 'init') {
   cpSync(join(KIT, 'example'), target, { recursive: true, filter: (src) => !/[\\/](node_modules|dist|\.data|\.tanstack|routeTree\.gen\.ts|\.npmrc|package-lock\.json)([\\/]|$)/.test(src) })
   const pkg = join(target, 'package.json')
   writeFileSync(pkg, readFileSync(pkg, 'utf8').replace('"@brax-hub/ui": "file:../.."', `"@brax-hub/ui": "${UI_KIT}"`))
+  writeFileSync(
+    join(target, '.npmrc'),
+    '# The UI kit, @brax-hub/ui, comes from git by tag (package.json). npm 12 fetches nothing from git unless the project\n' +
+      '# says so; "root" allows the git dependencies this package.json names itself, and no other.\n' +
+      'allow-git=root\n',
+  )
   for (const file of ['package.json', 'module.yaml', 'vite.config.ts', 'src/routes/__root.tsx', 'README.md']) {
     const path = join(target, file)
     if (!existsSync(path)) continue

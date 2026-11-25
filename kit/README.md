@@ -41,7 +41,7 @@ the scaffold that is:
 
 | Where | What |
 | --- | --- |
-| `package.json` | `"@brax-hub/ui"` by tag; `ui-check` in the gate; no Tailwind, Radix or font package of the app's own |
+| `package.json`, `.npmrc` | `"@brax-hub/ui"` by tag, and `allow-git=root` so npm 12 will fetch it; `ui-check` in the gate; no Tailwind, Radix or font package of the app's own |
 | `vite.config.ts` | `braxUi()` first in `plugins` |
 | `src/styles.css` | one line, `@import "@brax-hub/ui/ui.css"` |
 | `src/routes/__root.tsx` | the app's stylesheet, then `hubStylesheetLinks`: the hub's values, its theme (the accent its owner picked) and its two licensed faces; `data-theme` from the `hub.theme` message; the frame (`AppFrame`, `Rail`, `AppMain`) |
