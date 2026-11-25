@@ -1,0 +1,4 @@
+# One line ending in every checkout. An app installs the UI kit from this repository by git, and npm 12 records in the
+# app's lock file a hash of what it packed from the checkout: with LF on one machine and CRLF on another (Windows with
+# core.autocrlf), the same commit would hash differently on the two.
+* text=auto eol=lf

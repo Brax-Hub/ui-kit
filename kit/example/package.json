@@ -12,9 +12,10 @@
     "routes": "tsr generate",
     "typecheck": "tsc --noEmit",
     "security-scan": "node tooling/security-scan.ts && node tooling/app-scan.ts",
+    "ui-check": "brax-ui-check",
     "test-rls": "node tooling/rls-test.mjs",
     "test": "node --test tooling/security-scan.test.ts tooling/mcp.test.mjs tooling/kit-drift.test.mjs",
-    "gate": "npm run typecheck && npm run security-scan && npm run test-rls && npm run build",
+    "gate": "npm run typecheck && npm run security-scan && npm run ui-check && npm run test-rls && npm run build",
     "gen-types": "node tooling/gen-types.mjs",
     "gateway": "node tooling/gateway-stub.mjs serve",
     "ai-stub": "node tooling/ai-stub.mjs",
@@ -24,6 +25,7 @@
     "rollback": "node tooling/rollback.mjs"
   },
   "dependencies": {
+    "@brax-hub/ui": "file:../..",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-start": "^1.169.4",

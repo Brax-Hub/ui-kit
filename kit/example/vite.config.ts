@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { braxUi } from '@brax-hub/ui/vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -15,6 +16,8 @@ export default defineConfig(({ mode }) => ({
   base: BASE,
   resolve: { tsconfigPaths: true },
   plugins: [
+    // The UI kit: its Tailwind, and the build settings its stylesheet and parts need (ui/README.md in Brax-Hub/ui-kit).
+    braxUi(),
     // The stub edge plays the hub in development only (brax-hub-module step 2); the MCP path gets no member.
     ...(mode === 'development' ? [devMemberPlugin({ mcpPath: `${BASE}mcp` })] : []),
     tanstackStart({ srcDirectory: 'src', server: { entry: './server/entry.ts' } }),

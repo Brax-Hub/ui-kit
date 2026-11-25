@@ -11,26 +11,187 @@ Three layers (TASKS FE01 and FE02).
 | 1 Values | `values.css` | One file of CSS variables from the design of record, the owner's prototype of 23 October 2026. Colours for light and dark, the accent and every shade computed from it, the three faces, type sizes, letter-spacing, the spacing step, control sizes, corners, motion. Every value cites its line in the prototype. A screen that is not React links this file alone. |
 | 2 Theme | `theme.css` | A Tailwind 4 theme (`@theme inline`) that reads the values: `bg-accent`, `text-ink-2`, `font-display`, `h-control`, `tracking-caps`, `rounded-pill` and the rest. It drops Tailwind's own palette, faces, sizes and radii, so an app can write only what the values file names. |
 | entry | `ui.css` | What an app imports: Inter from the pinned package, then the theme. |
-| 3 Parts | `parts/` | The shadcn/ui parts on Radix, kept once, in the prototype's look: every part the module kit's app (Entity Hub), Feedback, the Guide's admin and Hub administration use. `lib/cn.ts` merges classes. |
+| 3 Parts | `parts/` | The shadcn/ui parts on Radix, kept once, in the prototype's look: every part the module kit's sample app, Entity Hub, Feedback, the Guide's admin and Hub administration use. `lib/cn.ts` merges classes. |
+| for an app | `vite.js`, `lib/hub.ts`, `check/` | What an app needs besides the look: `braxUi()` for its Vite config, the three stylesheets of the hub its page links, and the check its gate runs (`brax-ui-check`). |
 
-## Using it
+The package file of the kit, `package.json`, is at the repository's root, because npm installs a repository from git by
+its root. It lists the kit's files only; the module kit beside it is not in the package.
 
-```css
-/* the app's one stylesheet */
-@import "@brax-hub/ui/ui.css";
+## Taking the UI kit into an app
+
+Decided on 25 November 2026 with the first half of TASKS FE04, by the session that built it, and open to be overruled
+by the owner. Proven on the module kit's sample app, `kit/example`, and in this repository's CI (`by-tag`).
+
+**The UI kit is a package of this repository, `@brax-hub/ui`, and an app names it by this repository's tag.** npm
+installs it straight from git; nothing is published anywhere else.
+
+```json
+"dependencies": {
+  "@brax-hub/ui": "git+https://github.com/Brax-Hub/ui-kit.git#ui-v0.2.0"
+}
 ```
 
-```tsx
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Table, TR, TD } from "@brax-hub/ui/parts";
-```
+Why this way:
 
-Consumers pin a tag of this repository (AGENTS.md: "Publish by tag"); nothing references its working tree. The first
-version an app can pin is `0.1.0`, the tag `ui-v0.1.0` (the tag is the owner's to make). The `ui-` prefix names which
-of the repository's two things the tag publishes: the module kit's own release workflow, which an app copies, fires on
-bare `v*` tags in the app's repository, so a bare `v0.1.0` here would read as the kit's or an app's. The parts are
-TypeScript source (`parts/*.tsx`), compiled by the app's own Vite, as shadcn copies are; the app needs React 19.
-The app writes no colour, face, spacing or radius of its own (ADR-039 rule 3); `npm test` here shows the check the kit's
-own files and parts pass, and FE04 brings the same check to the apps.
+- **The repository is private and has no registry.** A tag is this repository's one way of publishing (AGENTS.md,
+  "Publish by tag"), and npm reads a tag from git with the credentials git already has. There is no registry to keep,
+  no publish step to fail or forget, and a developer or an agent session that can clone this repository can install
+  the kit with no setup.
+- **The version cannot move under an app.** The lock file records the commit the tag pointed at, so `npm ci` gets that
+  commit every time, even if a tag were moved.
+- **The app imports and holds no copy** (ADR-039 rule 2). The parts are in `node_modules`, never in the app's tree,
+  and the check below refuses a copy.
+- **One version of everything the look is made of.** The kit brings Tailwind, Radix and Inter as its own dependencies,
+  so every app that pins the same tag is on the same version of each, and an app declares none of them.
+
+Considered and not chosen:
+
+- **GitHub Packages as an npm registry.** The usual answer for a private package. It adds a publish workflow that has
+  to run on every tag, a token with package rights on every machine that installs (a developer's too: git's
+  credentials do not count there), and access to grant per repository. The lines an app writes would be the same, so
+  moving to a registry later changes one string in `package.json`.
+- **A copy by tag with a test on its hash**, as the hub server keeps `values.css` (below). Right for one stylesheet
+  that a server which is not Node must serve from its own origin; for an app it would be a copy of every part, which
+  rule 2 rules out.
+- **The address of an archive of the tag.** GitHub does not promise the bytes of a generated archive stay the same,
+  and the lock file pins those bytes.
+
+What it costs, two things.
+
+**The app says it wants a git dependency.** npm 12 fetches nothing from git unless the project opts in ("As of npm 12
+the default is `none`", its own words for `allow-git`), so the app's `.npmrc` has one line, `allow-git=root`: the git
+dependencies its own `package.json` names, and no other. Found here on npm 12.2.0, where the install is refused
+without it (`EALLOWGIT`); the npm that comes with Node 22 installs with the line present (this repository's CI does).
+This is npm leaning away from git dependencies, and it is the one thing that would tip the choice to a registry later.
+
+Two things seen when the same commit was installed on Windows with npm 12 and on Linux with Node 22's npm
+(pull request 6). The lock file's hash of the package is the same on both, which `.gitattributes` (LF in every
+checkout) is there to keep. And the two write the address differently: npm 12 keeps `git+https://…` as `package.json`
+has it, the older one writes `git+ssh://git@github.com/…` whatever `package.json` says. The token lines below rewrite
+both forms, so CI and the image build work with either lock file. A PC that has no SSH key for GitHub and gets a lock
+file with the `ssh` form needs one git setting to read it over HTTPS (not needed with npm 12, and not run here):
+`git config --global url."https://github.com/Brax-Hub/ui-kit".insteadOf "ssh://git@github.com/Brax-Hub/ui-kit"`.
+
+**Wherever `npm ci` runs, git must be able to read this repository.**
+
+| Where | What it needs |
+| --- | --- |
+| A developer's PC, an agent session | Nothing new: git's own credentials (`gh auth setup-git`). |
+| An app's CI | A secret `UI_KIT_TOKEN`, a token that may read `Brax-Hub/ui-kit` (contents, read only), handed to git in the environment of `npm ci`. The module kit's `tooling/ci.yml` and `release.yml` carry the lines; this repository's own `ci.yml` (`by-tag`) runs the same lines on every pull request. |
+| An app's image build | The same token as a build secret, and git in the build stage: the module kit's `Dockerfile` (`docker build --secret id=ui_kit_token,env=UI_KIT_TOKEN .`). |
+
+The token is the owner's to make (one for the organisation). If the owner later makes the kit public, which it could be
+(it holds no secret and no licensed face), the token and those lines go and nothing else changes.
+
+### The lines an app adds
+
+An app made with `node kit/init.mjs <slug> <dir>` has all of them. For an app that exists, they are:
+
+1. **`package.json`**: the dependency above, and the check in the gate. No Tailwind, Radix, `tailwind-merge`, font
+   package or shadcn file of the app's own: the kit brings what it needs. And **`.npmrc`**: `allow-git=root`.
+
+   ```json
+   "scripts": {
+     "ui-check": "brax-ui-check",
+     "gate": "npm run typecheck && npm run security-scan && npm run ui-check && npm run test-rls && npm run build"
+   }
+   ```
+
+2. **`vite.config.ts`**: one call, first in `plugins`. It brings the kit's Tailwind and the three build settings the
+   kit needs (`vite.js` says which and why).
+
+   ```ts
+   import { braxUi } from '@brax-hub/ui/vite'
+
+   plugins: [braxUi(), tanstackStart({ ... }), viteReact()],
+   ```
+
+3. **`src/styles.css`**, the app's one stylesheet, in full:
+
+   ```css
+   @import "@brax-hub/ui/ui.css";
+   ```
+
+4. **The root route's head**: the app's stylesheet, then the hub's three.
+
+   ```tsx
+   import { hubStylesheetLinks } from '@brax-hub/ui/hub'
+   import appCss from '../styles.css?url'
+
+   links: [{ rel: 'stylesheet', href: appCss }, ...hubStylesheetLinks],
+   ```
+
+5. **The parts**, imported wherever a screen needs one; `cn` from `@brax-hub/ui/cn` where an app merges classes.
+
+   ```tsx
+   import { AppFrame, Button, Page, PageHeader, Rail, RailItem, Table, TD, TR } from '@brax-hub/ui/parts'
+   ```
+
+6. **`tsconfig.json`**: `"moduleResolution": "bundler"`, `"noEmit": true` and `"allowImportingTsExtensions": true`.
+   The parts are TypeScript source (`parts/*.tsx`), compiled by the app's own Vite as shadcn copies were, and they
+   import each other by file name. The app needs React 19.
+
+A screen then uses the theme's classes for its layout (`flex`, `gap-3`, `text-ink-3`, `h-control`) and the parts for
+everything a person touches. A part the app needs and the kit lacks is added here, in `parts/`, with its section on
+the parts page and under the tests below; it is not built in the app.
+
+### What the page gets at run time: the hub's theme
+
+The four stylesheets, in the order the page links them:
+
+| | Stylesheet | From | What it gives |
+| --- | --- | --- | --- |
+| 1 | the app's own | the app's build | The kit's values, theme and every class a part uses, at the version the app pinned. With this alone the page is whole: outside a hub it shows the kit's default accent and the system faces. |
+| 2 | `/hub/assets/ui/values.css` | the hub | The hub's copy of the kit's file of values, so every app on one hub shows the same values. It comes later in the document, so where both name a variable the hub's wins. |
+| 3 | `/hub/assets/theme.css` | the hub | One rule, `html:root { --accent: … }`, with the accent the hub's owner picked (TASKS FE03). `html:root` outranks the kit's `:root`, so it wins whatever the order. Every shade is computed from it in the browser. |
+| 4 | `/hub/assets/fonts/hub-fonts.css` | the hub | Kinetika and LFT Etica Mono (TASKS FE08; `fonts/README.md`). |
+
+A page may link same-origin stylesheets only, and a module in its frame is same-origin with the hub, so these are
+paths. The hub server keeps its copy of `values.css` by tag with a test on its hash (Brax-Hub/brax-hub#257, today at
+`ui-v0.1.0`); it takes a newer tag in a pull request of its own. An app and a hub on different versions of the kit
+still work: the page has both files, a variable the older one lacks keeps the newer one's value, and no part reads a
+variable neither defines.
+
+Light or dark comes in the `hub.theme` message (below); the accent does not, it comes from stylesheet 3.
+
+Locally there is no hub. The module kit's stub edge (`kit/dev/dev-member.ts`) answers the three paths in the dev
+server, so the page loads as it does on a hub, and names an accent the way an owner would: `?accent=2563EB` on any
+page, or `DEV_ACCENT=2563EB`. The sample app's smoke suite checks that the accent named there is the one a button
+shows.
+
+### The check an app runs
+
+`brax-ui-check` (`check/cli.mjs`; `check/app.mjs` says what is read). It exits 1, naming file and line, when an app's
+screens hold:
+
+- a colour, a face, a radius or a length written by hand, a Tailwind palette class or a scale name the theme drops;
+- a value of the kit set again (`--accent: …`), a `@theme`, a `@font-face`, or Tailwind imported past the kit's theme;
+- a stylesheet or a font from another origin;
+- a parts folder (`src/components/ui/`, `components.json`), a component declared under the name of one of the kit's
+  parts, or an import of what parts are made of (Radix, cmdk, sonner, vaul, react-resizable-panels, tailwind-merge);
+- a dependency the kit brings (Tailwind, Radix, a font package);
+
+or when the app's stylesheet does not import the kit's, or its page does not link the hub's three stylesheets. The
+list of what counts as a colour or a face is one file, `check/literals.mjs`, the same the kit holds itself to.
+
+### A new version, and the tag
+
+The version is `version` in the root `package.json`; its tag is `ui-v<version>`, and the tag is the owner's to make.
+The `ui-` prefix names which of the repository's two things the tag publishes: the module kit's release workflow,
+which an app copies, fires on bare `v*` tags in the app's repository, so a bare `v0.2.0` here would read as the kit's
+or an app's. Until the owner has made a tag, an app can name a commit of `main` instead
+(`…ui-kit.git#<commit>`; `UI_KIT_REF=<commit> node kit/init.mjs …` writes it). Nothing references this repository's
+working tree, with one exception inside it: `kit/example` takes the kit from the tree it sits in (`file:../..`), so a
+change to a part is proven on the sample in the same pull request.
+
+A release that changes `values.css` is followed by the hub server taking the new tag (its copy is pinned by hash).
+
+| Version | Tag | What it added |
+| --- | --- | --- |
+| 0.1.0 | `ui-v0.1.0` | The values, the theme, 33 parts. Not installable as a package: the package file was in `ui/`. |
+| 0.2.0 | `ui-v0.2.0` (to be made) | The package at the repository's root; the app frame (`parts/app-frame.tsx`); `vite.js`, `lib/hub.ts`, `check/`. `values.css` is unchanged, so the hub server's copy stays right. |
+
+## Light and dark, the accent, the faces
 
 **Light and dark.** The hub shell tells a module's page its theme with the `hub.theme` message (HUB-SHELL §4.4,
 `theme: "light" | "dark"`); the page writes it as `data-theme="light"` or `"dark"` on `<html>`. No attribute, or
@@ -72,6 +233,9 @@ shadcn's names should know:
   hub's CSP allows; `SonnerToaster` gives sonner the same look for an app that already uses it.
 - **Table** uses real table elements with Entity Hub's names (`TR`, `TH`, `TD`, `TableFrame`, `SkeletonRows`) and
   shadcn's; `Page` carries `PageHeader`, `Section`, `Breadcrumbs`, `KeyValue` rows and `Fact` grids from the admin pages.
+- **App frame** (`AppFrame`, `Rail`, `RailLabel`, `RailItem`, `RailCount`, `AppMain`, `Toolbar`; added with FE04) is an
+  app's frame under the hub's header: the 240px rail of its own navigation and the main column beside it. `RailItem`
+  takes `asChild` for a router's link and shows the page in front (`aria-current="page"`) in the accent tint.
 - The parts carry no text of their own except "Not set" and the close button's label, which every part takes as a prop.
 
 ## Browser support
@@ -83,12 +247,14 @@ Chrome 85, Safari 16.4, Firefox 128). An older browser shows the default accent 
 
 ## The sample pages and the tests
 
+At the repository's root, where the package file is:
+
 ```powershell
-cd ui
 npm install
 npm run dev          # http://localhost:4181/ the values and theme; /parts.html the parts; light, dark, system; the seven accents
-npm test             # the contrast rules, no literal outside values.css, every used part exists and renders
+npm test             # the contrast rules, no literal outside values.css, the parts, the app's check, the module kit on the UI kit
 npm run typecheck    # the parts and the sample pages under TypeScript
+npm run pages        # builds the sample pages (named "pages", not "build": see the test of the package's scripts)
 ```
 
 `index.html` is built from the theme's utilities only and reproduces the sections of the prototype's Components page
@@ -105,5 +271,12 @@ screenshots in `docs/` were taken there and on `parts.html`.
 `npm test` runs Node's test runner over `test/contrast.test.mjs` (the rules under both ways a browser maps an
 out-of-gamut colour, for `test/accents.json` and a sweep of every hue; it prints the table for the pull request),
 `test/no-literals.test.mjs` (no hex, colour function, palette class, Tailwind scale name, font name, radius or
-px/rem/em length outside `values.css`, in the theme, the parts and the sample pages alike) and `test/parts.test.mjs`
-(every part the four apps import exists and is exported, and every section of the parts page renders to markup).
+px/rem/em length outside `values.css`, in the theme, the parts and the sample pages alike), `test/parts.test.mjs`
+(every part the four apps import exists and is exported, and every section of the parts page renders to markup),
+`test/app-check.test.mjs` (the check an app runs refuses what it says it refuses: a small app with one thing put
+wrong per rule, and a clean one that must pass) and `test/kit-on-ui.test.mjs` (TASKS FE04: the module kit holds no
+copy of a part and no colour of its own; the sample app passes the app's check; an app made by `kit/init.mjs` names
+this version's tag; the package holds the kit's files and nothing else).
+
+The same runs on every pull request (`.github/workflows/ci.yml`: `ui`, `kit` for the sample app's gate and unit
+tests, and `by-tag`, which installs the package from git at the pull request's commit the way an app does).

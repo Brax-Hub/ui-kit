@@ -15,6 +15,13 @@
 // app's tables and tools, so init copies the example's once as a starting point and --sync and --check leave them be.
 //   kit/Dockerfile           -> Dockerfile
 //   kit/deploy/*.MODULE.*    -> deploy/*.<slug>.*     ({{slug}}, {{slug_}} (hyphens to underscores) and {{SLUG}} templated)
+//
+// The UI kit. kit/example takes it from this repository's working tree ("@brax-hub/ui": "file:../..", with
+// install-links in its .npmrc), which only the kit's own sample may do. A new app names the tag of the version in this
+// checkout instead, git+https://github.com/Brax-Hub/ui-kit.git#ui-v<version>, with an .npmrc that lets npm fetch it
+// (allow-git=root), and gets neither the sample's .npmrc nor its lock file (`npm install` writes the app's own).
+// UI_KIT_REF=<tag or commit> names another ref, for instance a commit before the owner has made the tag.
+// ui/README.md, "Taking the UI kit into an app".
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -28,6 +35,7 @@ if (!slug || !target || !/^[a-z][a-z0-9_-]{1,31}$/.test(slug)) {
   process.exit(2)
 }
 const SLUG = slug.toUpperCase().replace(/-/g, '_')
+const UI_KIT = `git+https://github.com/Brax-Hub/ui-kit.git#${process.env.UI_KIT_REF || `ui-v${JSON.parse(readFileSync(join(KIT, '..', 'package.json'), 'utf8')).version}`}`
 
 function walk(dir, acc = [], base = dir) {
   for (const entry of readdirSync(dir)) {
@@ -66,7 +74,15 @@ if (mode === 'init') {
     console.error(`${target} is not empty; use --sync to refresh the kit's files in an existing app`)
     process.exit(2)
   }
-  cpSync(join(KIT, 'example'), target, { recursive: true, filter: (src) => !/[\\/](node_modules|dist|\.data|\.tanstack|routeTree\.gen\.ts)([\\/]|$)/.test(src) })
+  cpSync(join(KIT, 'example'), target, { recursive: true, filter: (src) => !/[\\/](node_modules|dist|\.data|\.tanstack|routeTree\.gen\.ts|\.npmrc|package-lock\.json)([\\/]|$)/.test(src) })
+  const pkg = join(target, 'package.json')
+  writeFileSync(pkg, readFileSync(pkg, 'utf8').replace('"@brax-hub/ui": "file:../.."', `"@brax-hub/ui": "${UI_KIT}"`))
+  writeFileSync(
+    join(target, '.npmrc'),
+    '# The UI kit, @brax-hub/ui, comes from git by tag (package.json). npm 12 fetches nothing from git unless the project\n' +
+      '# says so; "root" allows the git dependencies this package.json names itself, and no other.\n' +
+      'allow-git=root\n',
+  )
   for (const file of ['package.json', 'module.yaml', 'vite.config.ts', 'src/routes/__root.tsx', 'README.md']) {
     const path = join(target, file)
     if (!existsSync(path)) continue

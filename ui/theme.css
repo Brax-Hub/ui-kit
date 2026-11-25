@@ -8,6 +8,10 @@
 @import "tailwindcss";
 @import "./values.css";
 
+/* The parts' classes. Tailwind does not look inside node_modules, where an app has this kit, so the theme names the
+   parts' folder itself: an app that imports the theme gets every class a part uses, whichever parts it imports. */
+@source "./parts";
+
 @theme inline {
   --color-*: initial;
   --font-*: initial;

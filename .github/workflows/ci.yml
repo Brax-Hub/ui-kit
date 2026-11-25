@@ -1,0 +1,82 @@
+# The checks of Brax-Hub/ui-kit, on every pull request and on main.
+#   ui      the UI kit: its tests (the contrast rules, no literal outside values.css, the parts, the check an app
+#           runs with one failing fixture per rule, the business-app kit on the UI kit), the typecheck of the parts
+#           and the build of the sample pages
+#   kit     the module kit's sample app, kit/example: its gate (typecheck, security scan, UI check, RLS test on
+#           PGlite, build) and its unit tests (scanner fixtures, token verifier, kit drift)
+#   by-tag  the UI kit installs the way an app gets it: from git, at this commit, with a token handed to git through
+#           the environment, the same lines kit/tooling/ci.yml gives an app
+# Not here: the sample app's browser suites (smoke, screenshots), which need a browser and a running dev server; they
+# run in an app's own CI (kit/tooling/ci.yml) and by hand in kit/example.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run pages
+
+  kit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kit/example
+    env:
+      APP_ENV: local
+      TINBASE_ENGINE: pglite
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: kit/example/package-lock.json
+      - run: npm ci
+      - run: npm run gate
+      - run: npm test
+
+  by-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the UI kit from git at this commit, as an app does from a tag
+        env:
+          REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          GIT_CONFIG_COUNT: 2
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ github.token }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Brax-Hub/ui-kit
+          GIT_CONFIG_KEY_1: url.https://x-access-token:${{ github.token }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_1: ssh://git@github.com/Brax-Hub/ui-kit
+        run: |
+          mkdir "$RUNNER_TEMP/app" && cd "$RUNNER_TEMP/app"
+          npm init -y > /dev/null
+          echo "allow-git=root" > .npmrc   # as an app made by kit/init.mjs has: npm 12 fetches nothing from git without it
+          npm install --no-audit --no-fund "git+https://github.com/Brax-Hub/ui-kit.git#$REF" react react-dom vite
+          grep -A2 '"resolved": "git' package-lock.json
+          cd node_modules/@brax-hub/ui
+          test -f ui/values.css -a -f ui/theme.css -a -f ui/ui.css -a -f ui/parts/index.ts -a -f ui/lib/hub.ts -a -f ui/check/cli.mjs
+          test ! -e kit -a ! -e ui/test -a ! -e ui/sample -a ! -e node_modules
+      - name: The app can load what the package offers a build
+        working-directory: ${{ runner.temp }}/app
+        run: |
+          node -e "import('@brax-hub/ui/vite').then((m) => { if (typeof m.braxUi !== 'function' || m.braxUi().length !== 2) process.exit(1) })"
+          node -e "import('@brax-hub/ui/check').then((m) => { if (typeof m.checkApp !== 'function' || m.partNames().size < 100) process.exit(1) })"
+          test -x node_modules/.bin/brax-ui-check

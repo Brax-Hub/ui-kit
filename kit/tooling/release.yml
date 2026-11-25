@@ -5,6 +5,7 @@
 # The artefact release-<tag> holds release.json (tag, commit, image, digest) and the snapshot for docs/<app>/releases.md.
 # Record it with: node tooling/rollback.mjs record <tag> --env built --version <image@digest> --snapshot <file>
 # (later `record <tag> --env lab` fills the Lab column once the owner installs it). Managed by kit/init.mjs (source kit/tooling/release.yml).
+# Needs the secret UI_KIT_TOKEN, as ci.yml does: a token that may read Brax-Hub/ui-kit.
 name: release
 on:
   push:
@@ -43,6 +44,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: # read access to the UI kit, which package.json names by tag (ui/README.md in Brax-Hub/ui-kit)
+          GIT_CONFIG_COUNT: 2
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Brax-Hub/ui-kit
+          GIT_CONFIG_KEY_1: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_1: ssh://git@github.com/Brax-Hub/ui-kit
       - name: Gate
         run: npm run gate
         env:
@@ -55,6 +62,9 @@ jobs:
           context: .
           platforms: linux/amd64
           load: true
+          # the Dockerfile's `npm ci` clones the UI kit with this token; it is a build secret and reaches no layer
+          secrets: |
+            ui_kit_token=${{ secrets.UI_KIT_TOKEN }}
           tags: ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}

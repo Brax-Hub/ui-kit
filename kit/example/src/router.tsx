@@ -1,3 +1,4 @@
+import { Page, PageHeader } from '@brax-hub/ui/parts'
 import { createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 
@@ -11,16 +12,14 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultErrorComponent: ({ error }) => (
-      <main className="page">
-        <h1>Something went wrong</h1>
-        <p className="muted">{error instanceof Error ? error.message : String(error)}</p>
-      </main>
+      <Page>
+        <PageHeader title="Something went wrong" description={error instanceof Error ? error.message : String(error)} />
+      </Page>
     ),
     defaultNotFoundComponent: () => (
-      <main className="page">
-        <h1>Page not found</h1>
-        <p className="muted">That page does not exist, or you do not have access to it.</p>
-      </main>
+      <Page>
+        <PageHeader title="Page not found" description="That page does not exist, or you do not have access to it." />
+      </Page>
     ),
   })
 }
