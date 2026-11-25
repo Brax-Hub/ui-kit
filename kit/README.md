@@ -203,3 +203,14 @@ in, `libgssapi-krb5-2` added for initdb) and a read-only run with a `/data` volu
 without the member headers, 200 with them, 401 on `tools/call` without a token, container healthy. Not run here: the
 native engine outside Docker (Linux only; `ci.yml`'s `native` job covers it), the overlay (no
 Docker on this PC), an install on a hub.
+
+## Status of the hub's events (2026-11-25, TASKS APM10)
+
+Green on this PC (Windows, Node 24, PGlite): `npm run gate` in `kit/example` (typecheck, 14 scanner rules, 95 RLS
+assertions, build) and `npm test` (15 checks of the feed against the stand-in hub, 6 more skipped without a hub).
+Tried by hand in `kit/example`: the dev server following the stand-in hub wrote the calendar notes and the cursor to
+its database, was killed, and at its next start asked after the kept cursor and received what had happened meanwhile,
+in order. The six checks for a real hub were run once against the stand-in behind a TLS listener that demands a client
+certificate (five passed, the sixth waits for a person to change a calendar event), and a certificate of another
+authority was refused. Not run: anything against a real hub (the lab hub needs a hub release with the feed), and the
+manifest validator on the example's new `calendar.read`.
