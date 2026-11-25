@@ -82,7 +82,7 @@ export interface GatewayKey {
   pub: string
 }
 
-interface Credential {
+export interface Credential {
   key: Buffer
   cert: Buffer
   ca: Buffer
@@ -168,6 +168,9 @@ function errorCode(json: unknown): string {
   if (typeof o.error === 'string') return o.error
   return 'unknown'
 }
+
+/** The module credential, or null without a hub. For a client that holds its own connection (hub/events.server.ts). */
+export const moduleCredential = (): Credential | null => loadCredential()
 
 export const lcc = {
   /** True when a credential exists, i.e. the module runs inside a hub. */

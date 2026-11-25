@@ -32,6 +32,8 @@ export interface AppEnv {
   lccTlsName: string | undefined
   /** Local only: where the tool gateway stub serves its keys instead of LCC's /services/module/gateway-keys. */
   gatewayKeysUrl: string | undefined
+  /** Local only: a stand-in hub for the event feed (tooling/hub-events-stub.mjs), followed when there is no credential. */
+  hubEventsUrl: string | undefined
   /** 'off' stops the job runner in this process (the suites, the RLS test). */
   jobs: 'on' | 'off'
 }
@@ -75,6 +77,7 @@ export function getEnv(): AppEnv {
     credentialDir: credentialDir && existsSync(credentialDir) ? credentialDir : null,
     lccTlsName: process.env.LCC_TLS_NAME || undefined,
     gatewayKeysUrl: appEnv === 'local' ? process.env.GATEWAY_KEYS_URL || 'http://127.0.0.1:38400/gateway-keys' : undefined,
+    hubEventsUrl: appEnv === 'local' ? process.env.HUB_EVENTS_URL || undefined : undefined,
     jobs: process.env.JOBS === 'off' ? 'off' : 'on',
   }
   return cached
