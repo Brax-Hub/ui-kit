@@ -59,6 +59,19 @@ try {
   check('Run now records a heartbeat run', /heartbeat: \d+ rows/.test(message ?? ''), message ?? '')
   check('the run shows in recent runs', await admin.getByTestId('job-runs').getByText('manual').count().then((n) => n >= 1))
   await admin.context().close()
+
+  // The look is the UI kit's and the accent is the hub's (ADR-039 rule 3): the page links the hub's three stylesheets
+  // after its own, and the accent the hub names (here the stub edge's ?accent=) is the one every part shows.
+  const themed = await openAs(browser, 'owner', { base })
+  const sheets = await themed.evaluate(() => [...document.querySelectorAll('link[rel=stylesheet]')].map((l) => new URL(l.href).pathname))
+  check('the page links the hub\'s values, theme and fonts after its own stylesheet', sheets.length === 4 && JSON.stringify(sheets.slice(1)) === JSON.stringify(['/hub/assets/ui/values.css', '/hub/assets/theme.css', '/hub/assets/fonts/hub-fonts.css']), JSON.stringify(sheets))
+  const primary = () => themed.getByRole('button', { name: 'Add' }).evaluate((b) => getComputedStyle(b).backgroundColor)
+  const own = await primary()
+  await themed.goto(`${base}/?accent=2563EB`, { waitUntil: 'networkidle' })
+  const hubs = await primary()
+  check('the hub\'s accent wins over the kit\'s own', hubs === 'rgb(37, 99, 235)' && own !== hubs, `${own} -> ${hubs}`)
+  check('the page in front is marked in the rail', (await themed.locator('nav [aria-current=page]').textContent()) === 'Items')
+  await themed.context().close()
 } finally {
   await browser.close()
 }

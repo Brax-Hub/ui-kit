@@ -21,7 +21,7 @@ module credential. `kit/example/` is an app made from it and the proof. Plan: `d
 | `server/hub/people-sync.ts` | The nightly reconcile of `memberships` from `lcc.people()`; no-op with `no_hub` |
 | `server/static.server.ts` | Serves `dist/client` under the entry prefix in production |
 | `server/tools/index.ts` | The empty handler registry an app fills (one file per manifest tool) |
-| `dev/dev-member.ts` | Copied to the app's `tooling/` like the other two stubs. The stub edge (Vite middleware): `DEV_MEMBER`, `?as=`, cookie; refuses outside `APP_ENV=local`; strips the headers on the MCP path |
+| `dev/dev-member.ts` | Copied to the app's `tooling/` like the other two stubs. The stub edge (Vite middleware): `DEV_MEMBER`, `?as=`, cookie; refuses outside `APP_ENV=local`; strips the headers on the MCP path. It also answers the hub's three stylesheets a page links (`/hub/assets/ui/values.css`, `/hub/assets/theme.css`, `/hub/assets/fonts/hub-fonts.css`) and names an accent as a hub's owner would: `DEV_ACCENT=2563EB` or `?accent=2563EB` |
 | `dev/gateway-stub.mjs` | `serve` the keys on 38400 (LCC's `{ keys: [{kid, alg, pub}] }` shape), `call <tool> '<json>' --as owner` mints a delegated token and drives `tools/call`; `--expired`, `--bad-args`, `--replay` |
 | `dev/ai-stub.mjs` | OpenAI-shaped `/v1/chat/completions` stub on 54399, plus `/services/module/contacts` and `STUB_DENY` |
 | `tooling/security-scan.ts` + `.test.ts` | The A4 rules (14) with one failing fixture per rule |
@@ -30,14 +30,40 @@ module credential. `kit/example/` is an app made from it and the proof. Plan: `d
 | `tooling/ci.yml`, `release.yml`, `release.mjs`, `rollback.mjs`, `build-server.mjs`, `gen-types.mjs` | CI (gate, screens on the fresh database, then smoke and the MCP path, native engine), the tag-triggered release to GHCR by digest with its pre-install snapshot (both `.yml` files land in `.github/workflows/`), the same release from a machine with Docker, rollback and the ledger (`record --env built` for a pushed, uninstalled image), the Node entry, `tinbase gen types` |
 | `example/tooling/app-scan.ts` | The app's own scanner rules, chained after the kit's in `npm run security-scan`; scaffolded once with one example rule |
 | `module.yaml.example`, `Dockerfile`, `deploy/compose.MODULE.yaml`, `deploy/lcc-edge.MODULE.conf` | The templates (`{{slug}}`, `{{SLUG}}`) |
-| `init.mjs` | `node kit/init.mjs <slug> <dir>` copies the example as a scaffold and the managed files on top; `--sync` refreshes them; `--check` reports drift. The suites are not managed |
+| `init.mjs` | `node kit/init.mjs <slug> <dir>` copies the example as a scaffold and the managed files on top, and names the UI kit by its tag in the new app's `package.json`; `--sync` refreshes the managed files; `--check` reports drift. The suites are not managed |
+
+## The look: the UI kit (TASKS FE04)
+
+An app made from this kit looks like the hub without its author doing anything (ADR-039 rule 4). It takes the Brax Hub
+UI kit, `@brax-hub/ui`, from this repository by tag, and holds nothing of the look itself: no part, no colour, no
+face. How, why, and the exact lines are in [`../ui/README.md`](../ui/README.md), "Taking the UI kit into an app". In
+the scaffold that is:
+
+| Where | What |
+| --- | --- |
+| `package.json` | `"@brax-hub/ui"` by tag; `ui-check` in the gate; no Tailwind, Radix or font package of the app's own |
+| `vite.config.ts` | `braxUi()` first in `plugins` |
+| `src/styles.css` | one line, `@import "@brax-hub/ui/ui.css"` |
+| `src/routes/__root.tsx` | the app's stylesheet, then `hubStylesheetLinks`: the hub's values, its theme (the accent its owner picked) and its two licensed faces; `data-theme` from the `hub.theme` message; the frame (`AppFrame`, `Rail`, `AppMain`) |
+| `src/routes/*.tsx` | screens built from the parts (`Page`, `PageHeader`, `Section`, `Table`, `Toolbar`, `Input`, `Select`, `Button`, `Badge`, `Alert`) and the theme's classes |
+| `Dockerfile`, `.github/workflows/*.yml` | git in the build stage, and the token that may read the UI kit's repository (`UI_KIT_TOKEN`) |
+
+`npm run ui-check` (the UI kit's `brax-ui-check`) refuses a colour, a face, a radius or a length written in a screen, a
+copy of a part, and a page that does not link the hub's theme. A part an app needs and the UI kit lacks is added to
+`ui/parts` in this repository, never to the app.
+
+`kit/example` is the one app that does not name a tag: it takes the UI kit from the working tree it sits in
+(`"@brax-hub/ui": "file:../.."`, installed as a package because of `install-links` in its `.npmrc`), so a change to a
+part is proven on the sample in the same pull request. Two things follow. After a change under `ui/`, run `npm ci` in
+`kit/example` to take it (`npm install` keeps the copy it has). And the sample's image cannot be built from its own
+folder, because the UI kit is outside that folder; an app made by `init` builds its image from its own.
 
 ## Local commands (in an app, e.g. `kit/example`)
 
 ```bash
 npm install
-npm run dev            # http://localhost:3310/modules/<slug>/ as DEV_MEMBER=owner; ?as=admin|member|viewer
-npm run gate           # typecheck && security-scan && test-rls && build
+npm run dev            # http://localhost:3310/modules/<slug>/ as DEV_MEMBER=owner; ?as=admin|member|viewer; ?accent=2563EB
+npm run gate           # typecheck && security-scan && ui-check && test-rls && build
 npm test               # scanner fixtures, token verifier, kit drift
 node tooling/gateway-stub.mjs call list_items '{}' --as owner
 npm run smoke          # against the dev server, on Edge

@@ -1,8 +1,9 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
-import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
+import { braxUi } from "./vite.js";
 
 /* The sample pages (index.html for the values and theme, parts.html for the parts) are the tester's evidence. With
    HUB_PROTOTYPE set (.env.example) to the folder of the owner's prototype, the dev server also serves that folder at
@@ -42,17 +43,18 @@ function servePrototype(folder) {
   };
 }
 
-/* The browsers the colour math needs (README.md). Named here so that the build keeps light-dark() and the relative
-   colours as written instead of compiling them down for older browsers; Tailwind's own optimiser is off for the
-   same reason, and Vite minifies with these targets. */
-const browsers = ["chrome123", "edge123", "safari17.5", "firefox128"];
+/* The kit's own pages take Tailwind and the build settings the way an app does, through braxUi() (vite.js): the
+   browsers the colour math needs are named there. The package file is at the repository's root, one level up, so the
+   pages' root is named here. */
+const here = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "HUB_");
+  const env = loadEnv(mode, here, "HUB_");
   const prototype = env.HUB_PROTOTYPE || process.env.HUB_PROTOTYPE;
   return {
-    plugins: [react(), tailwindcss({ optimize: false }), ...(prototype ? [servePrototype(prototype)] : [])],
-    build: { cssTarget: browsers, rollupOptions: { input: ["index.html", "parts.html", "compare.html"] } },
+    root: here,
+    plugins: [braxUi(), react(), ...(prototype ? [servePrototype(prototype)] : [])],
+    build: { rollupOptions: { input: ["index.html", "parts.html", "compare.html"].map((page) => join(here, page)) } },
     server: { port: 4181, strictPort: true },
   };
 });

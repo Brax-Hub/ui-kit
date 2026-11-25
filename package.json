@@ -1,0 +1,82 @@
+{
+  "name": "@brax-hub/ui",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "The shared UI kit of Brax Hub apps (ADR-039): the file of values, the Tailwind 4 theme and the parts. An app names it by this repository's tag (ui/README.md, \"Taking the UI kit into an app\").",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brax-Hub/ui-kit.git"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "ui/values.css",
+    "ui/theme.css",
+    "ui/ui.css",
+    "ui/vite.js",
+    "ui/vite.d.ts",
+    "ui/fonts/",
+    "ui/lib/",
+    "ui/parts/",
+    "ui/check/",
+    "ui/README.md"
+  ],
+  "exports": {
+    "./ui.css": "./ui/ui.css",
+    "./theme.css": "./ui/theme.css",
+    "./values.css": "./ui/values.css",
+    "./cn": "./ui/lib/cn.ts",
+    "./hub": "./ui/lib/hub.ts",
+    "./parts": "./ui/parts/index.ts",
+    "./parts/*": "./ui/parts/*.tsx",
+    "./vite": {
+      "types": "./ui/vite.d.ts",
+      "default": "./ui/vite.js"
+    },
+    "./check": "./ui/check/app.mjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "brax-ui-check": "ui/check/cli.mjs"
+  },
+  "scripts": {
+    "dev": "vite --config ui/vite.config.js",
+    "pages": "vite build --config ui/vite.config.js",
+    "preview": "vite preview --config ui/vite.config.js",
+    "typecheck": "tsc --noEmit -p ui",
+    "test": "node --test \"ui/test/*.test.mjs\""
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": ">=7.0.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@tailwindcss/vite": "4.3.5",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.78.0",
+    "radix-ui": "1.8.1",
+    "react-resizable-panels": "4.24.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "3.7.1",
+    "tailwindcss": "4.3.5"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "esbuild": "0.28.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.8"
+  }
+}

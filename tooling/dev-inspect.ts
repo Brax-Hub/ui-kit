@@ -78,7 +78,11 @@ export async function openInEditor(id: string) {
 function toast(message: string) {
   const el = document.createElement('div')
   el.textContent = message
-  el.setAttribute('style', 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;max-width:90vw;padding:8px 12px;border-radius:8px;background:#171717;color:#f3f4f7;font:12px ui-monospace,monospace;box-shadow:0 4px 12px rgba(11,13,18,.3)')
+  // The look is the UI kit's toast (its file of values, which the app's stylesheet carries): no colour or face of its own.
+  el.setAttribute(
+    'style',
+    'position:fixed;left:50%;bottom:calc(var(--space)*6);transform:translateX(-50%);z-index:2147483647;max-width:90vw;padding:calc(var(--space)*2) calc(var(--space)*3);background:var(--toast-bg);color:var(--toast-text);font-family:var(--face-mono);font-size:var(--type-small);box-shadow:var(--pop-shadow)',
+  )
   document.body.appendChild(el)
   setTimeout(() => el.remove(), 2200)
 }

@@ -3,6 +3,7 @@
    (theme.css) and the file of values (values.css); none writes a value of its own. */
 export * from "./alert-dialog.tsx";
 export * from "./alert.tsx";
+export * from "./app-frame.tsx";
 export * from "./avatar.tsx";
 export * from "./badge.tsx";
 export * from "./button.tsx";

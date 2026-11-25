@@ -3,7 +3,7 @@
 import { AlarmClock, Bell, Building2, CalendarClock, Folder, Grid3x3, Pencil, Search, Share, Trash2, WifiOff } from "lucide-react";
 import type { ComponentType } from "react";
 import {
-  Alert, AlertDescription, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  Alert, AlertDescription, AppFrame, AppMain, Rail, RailCount, RailItem, RailLabel, Toolbar, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger, AlertTitle, Avatar, Badge, Banner, Breadcrumbs, Button, Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle, CheckField,
   Checkbox, Chip, Collapsible, CollapsibleContent, CollapsibleTrigger,
   Copyable, CountBadge, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DropdownMenu,
@@ -276,6 +276,27 @@ export const sections: SectionDef[] = [
           <FactGrid><Fact label="Model">Brax Phone 2</Fact><Fact label="Serial" mono>BRX3-7F2A-91C4</Fact><Fact label="Enrolled">12 October 2026</Fact><Fact label="Last seen">{null}</Fact></FactGrid>
         </Section>
       </div>
+    ),
+  },
+  {
+    title: "App frame",
+    parts: "app-frame (AppFrame, Rail, RailLabel, RailItem, RailCount, AppMain, Toolbar)",
+    prototype: "App rail",
+    render: () => (
+      <AppFrame className="h-90 min-h-0 border border-line">
+        <Rail aria-label="Mail folders (example)">
+          <RailLabel className="pt-0">Mail</RailLabel>
+          <RailItem on><Folder />Inbox<RailCount>4</RailCount></RailItem>
+          <RailItem><AlarmClock />Snoozed</RailItem>
+          <RailItem asChild><a href="#sent"><Share />Sent</a></RailItem>
+          <RailLabel>Labels</RailLabel>
+          <RailItem>Work<RailCount>3</RailCount></RailItem>
+        </Rail>
+        <AppMain className="gap-4 p-6">
+          <Toolbar aria-label="Inbox (example)"><Input className="max-w-80" aria-label="Search the inbox" placeholder="Search" /><Button size="sm">Mark all read</Button></Toolbar>
+          <Skeleton className="w-3/5" /><Skeleton className="w-2/5" />
+        </AppMain>
+      </AppFrame>
     ),
   },
   {

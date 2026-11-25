@@ -2,9 +2,10 @@
 
 Two things an author of a Brax Hub app needs, in one repository:
 
-1. **The module kit** (here now): what every Brax Business App copies to run as a hub module on tinbase.
-2. **The shared UI kit** (not built yet): one file of colours and faces, a Tailwind theme that reads it, and the parts
-   (buttons, tables, dialogs and the rest) every app and admin screen imports.
+1. **The module kit**: what every Brax Business App copies to run as a hub module on tinbase.
+2. **The shared UI kit**: one file of colours and faces, a Tailwind theme that reads it, and the parts (buttons,
+   tables, dialogs and the rest) every app and admin screen imports. It is the package `@brax-hub/ui`, which an app
+   names by this repository's tag; its package file is `package.json` here at the root.
 
 The owner decided on 23 November 2026 that both live here (`Brax-Hub/contracts`,
 `decisions/ADR-039-one-front-end.md`, "Open" 2: "A new Brax-Hub one", "Yes, create ui-kit", "Yes, move it in").
@@ -16,8 +17,10 @@ The owner decided on 23 November 2026 that both live here (`Brax-Hub/contracts`,
 | `kit/` | The module kit: tinbase boot, the hub identity bridge, member and service clients, the MCP server, jobs, dev stubs, the security scanner, CI and release tooling, and `kit/example`, a working app made from it. Start at [`kit/README.md`](kit/README.md). |
 | `templates/AI_RULES.md` | The starting point the root skill copies into an app that has no `AI_RULES.md`. |
 | `tooling/` | The editor-side pieces: the Vite source tagger, the dev inspector, the root dev snippet, and the hub identity helpers. |
-| `docs/design-system/` | The preview page of the Brax brand for apps (`style-guide.html`) and its two screenshots. |
-| `ui/` | The shared UI kit: the file of values (`values.css`), the Tailwind 4 theme (`theme.css`), the sample page and its tests (FE01). The parts come with FE02. Start at [`ui/README.md`](ui/README.md). |
+| `docs/design-system/` | `style-guide.html`, once the preview of a blue look for business apps. ADR-039 replaced that look with the hub's; the page now says where to see it (the UI kit's sample pages). |
+| `ui/` | The shared UI kit: the file of values (`values.css`), the Tailwind 4 theme (`theme.css`), the parts (`parts/`), what an app needs to take them (`vite.js`, `lib/hub.ts`, `check/`), the sample pages and the tests. Start at [`ui/README.md`](ui/README.md). |
+| `package.json`, `package-lock.json` | The UI kit's package file and lock file. They are at the root because npm installs a repository from git by its root; the package lists the kit's files under `ui/` only. |
+| `.github/workflows/ci.yml` | The checks on every pull request: the UI kit's tests, the sample app's gate, and the package installed from git the way an app gets it. |
 
 These four moved here on 23 November 2026 from `dominic8686/brax-business-app` at commit `bc96b95`, with their
 history. The files are unchanged except one address in `kit/example/module.yaml` and one sentence in
@@ -44,9 +47,9 @@ claude plugin install spec-central@brax
 The root skill (`brax-business-app`) loads its companions by name. Copy the kit, templates and tooling the skills
 name from this repository into the app. The kit's own proof is `npm run gate` in `kit/example`.
 
-## The shared UI kit (`ui/`; FE01 built, FE02 to come)
+## The shared UI kit (`ui/`)
 
-`Brax-Hub/contracts` TASKS FE01 and FE02. Decided in ADR-039:
+`Brax-Hub/contracts` TASKS FE01, FE02 and FE04. Decided in ADR-039:
 
 - One stack for every app and admin screen: React 19, TypeScript, Vite, Tailwind 4, TanStack.
 - The shadcn/ui parts on Radix are kept once, here, and imported by every app. No app holds its own copy.
@@ -60,13 +63,16 @@ Three layers:
    Screens that are not React read this layer only.
 2. **Theme:** a Tailwind 4 theme that reads the values. The accent's shades are computed from one value, so any
    accent a hub's owner picks stays readable.
-3. **Parts:** the React components, taken once from the copies in `kit/example`, Feedback, the Guide's admin and Hub
+3. **Parts:** the React components, taken once from the copies in Entity Hub, Feedback, the Guide's admin and Hub
    administration.
 
-The three sit in `ui/`, beside `kit/` (FE01): `ui/values.css`, `ui/theme.css`, and the parts' folder when FE02 adds it.
+The three sit in `ui/`, beside `kit/`: `ui/values.css`, `ui/theme.css` and `ui/parts/`. Since FE04 the module kit is on
+them: its sample app, templates and tooling import the parts and declare no colour or face, and a test fails if they
+do (`ui/test/kit-on-ui.test.mjs`). How an app takes the UI kit is in [`ui/README.md`](ui/README.md), "Taking the UI
+kit into an app".
 
 ## Not done
 
-- No check runs here on a pull request. The kit's `tooling/ci.yml` is a template an app copies; it is not active in
-  this repository.
-- `kit/example` was not run after the move. Its files are byte-for-byte the ones that passed in the old repository.
+- The sample app's browser suites (`npm run smoke`, `npm run screens` in `kit/example`) do not run on a pull request
+  here; they are run by hand. The kit's `tooling/ci.yml` is a template an app copies, and runs them in the app's CI.
+- The sample app's image is not built here (`kit/README.md`, "The look").

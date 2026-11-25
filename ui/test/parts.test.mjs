@@ -43,7 +43,7 @@ test("every part an app imports by name is exported", () => {
 
 test("every section of the parts page renders to markup", async () => {
   // inside node_modules so that the bundle resolves react from the kit's own install (and git ignores it)
-  const dir = join(root, "node_modules", ".cache", "ui-parts");
+  const dir = join(root, "..", "node_modules", ".cache", "ui-parts");
   mkdirSync(dir, { recursive: true });
   const out = join(dir, "sections.cjs");
   await build({

@@ -1,8 +1,10 @@
 # The gate for a Brax Business App on the hub-module stack. Copied to .github/workflows/ci.yml by kit/init.mjs.
-#   gate    typecheck, security scan, RLS test (PGlite), unit tests, build                      on every push and PR
+#   gate    typecheck, security scan, UI check, RLS test (PGlite), unit tests, build            on every push and PR
 #   suites  the dev server with the stub edge, smoke (Edge), screenshots, the MCP path            needs gate
 #   native  the RLS test and a built-and-started server on tinbase's native Postgres 17 (Linux)   needs gate
 # Artefacts: screenshots and logs, kept 14 days.
+# Needs the repository or organisation secret UI_KIT_TOKEN: a token that may read Brax-Hub/ui-kit (contents, read only),
+# because package.json names the UI kit by its tag in that private repository and npm clones it.
 name: ci
 on:
   push:
@@ -24,6 +26,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: # read access to the UI kit, which package.json names by tag (ui/README.md in Brax-Hub/ui-kit)
+          GIT_CONFIG_COUNT: 2
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Brax-Hub/ui-kit
+          GIT_CONFIG_KEY_1: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_1: ssh://git@github.com/Brax-Hub/ui-kit
       - run: npm run gate
       - run: npm test
 
@@ -37,6 +45,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: # read access to the UI kit, which package.json names by tag (ui/README.md in Brax-Hub/ui-kit)
+          GIT_CONFIG_COUNT: 2
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Brax-Hub/ui-kit
+          GIT_CONFIG_KEY_1: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_1: ssh://git@github.com/Brax-Hub/ui-kit
       - name: Edge for Playwright
         run: npx playwright-core install msedge
       - name: Dev server with the stub edge
@@ -70,6 +84,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env: # read access to the UI kit, which package.json names by tag (ui/README.md in Brax-Hub/ui-kit)
+          GIT_CONFIG_COUNT: 2
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Brax-Hub/ui-kit
+          GIT_CONFIG_KEY_1: url.https://x-access-token:${{ secrets.UI_KIT_TOKEN }}@github.com/Brax-Hub/ui-kit.insteadOf
+          GIT_CONFIG_VALUE_1: ssh://git@github.com/Brax-Hub/ui-kit
       - name: Postgres 17 binaries (cached by tinbase under ~/.cache/tinbase)
         run: node -e "import('tinbase/node').then(m => m.ensurePostgres(undefined, undefined, console.log))"
       - run: npm run test-rls

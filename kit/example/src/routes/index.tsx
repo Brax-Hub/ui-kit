@@ -1,3 +1,4 @@
+import { Alert, Button, FieldError, Input, Page, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableFrame, TableMessage, Tag, TBody, TD, TH, THead, Toolbar, TR } from '@brax-hub/ui/parts'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState, type FormEvent } from 'react'
 import { addItemFn, deleteItemFn, listItemsFn } from '@/server/items.functions'
@@ -36,57 +37,63 @@ function ItemsPage() {
   }
 
   return (
-    <main className="page">
-      <h1>Items</h1>
-      <p className="muted">What you see here is what row-level security lets your membership read: team items, and private items you own.</p>
+    <Page>
+      <PageHeader title="Items" description="What you see here is what row-level security lets your membership read: team items, and private items you own." />
       {data.canWrite ? (
-        <form className="row" onSubmit={add} data-testid="add-form">
-          <input aria-label="Title" placeholder="A new item" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
-          <select aria-label="Visibility" value={visibility} onChange={(e) => setVisibility(e.target.value as 'team' | 'private')}>
-            <option value="team">team</option>
-            <option value="private">private</option>
-          </select>
-          <button type="submit" disabled={busy || !title.trim()}>
-            Add
-          </button>
-          {error ? <span className="error">{error}</span> : null}
+        <form className="flex flex-col gap-2" onSubmit={add} data-testid="add-form">
+          <Toolbar aria-label="A new item">
+            <Input className="min-w-60 flex-1" aria-label="Title" placeholder="A new item" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
+            <Select value={visibility} onValueChange={(v) => setVisibility(v as 'team' | 'private')}>
+              <SelectTrigger className="w-40" aria-label="Visibility">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="team">team</SelectItem>
+                <SelectItem value="private">private</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="submit" variant="primary" disabled={busy || !title.trim()}>
+              Add
+            </Button>
+          </Toolbar>
+          {error ? <FieldError>{error}</FieldError> : null}
         </form>
       ) : (
-        <p className="muted" data-testid="read-only">
-          Your role is read-only here.
-        </p>
+        <Alert data-testid="read-only">Your role is read-only here.</Alert>
       )}
-      <table data-testid="items">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Owner</th>
-            <th>Visibility</th>
-            <th>Added</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {data.items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.title}</td>
-              <td>{item.owner_name}</td>
-              <td>
-                <span className="badge">{item.visibility}</span>
-              </td>
-              <td>{item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}</td>
-              <td>{data.canAdmin || (data.canWrite && item.owner_id !== null && item.owner_id === data.memberId) ? <button onClick={() => item.id && remove(item.id)}>Delete</button> : null}</td>
-            </tr>
-          ))}
-          {data.items.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="muted">
-                No items yet.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
-    </main>
+      <TableFrame>
+        <Table data-testid="items">
+          <THead>
+            <TR>
+              <TH>Title</TH>
+              <TH>Owner</TH>
+              <TH>Visibility</TH>
+              <TH>Added</TH>
+              <TH />
+            </TR>
+          </THead>
+          <TBody>
+            {data.items.map((item) => (
+              <TR key={item.id}>
+                <TD>{item.title}</TD>
+                <TD>{item.owner_name}</TD>
+                <TD>
+                  <Tag>{item.visibility}</Tag>
+                </TD>
+                <TD>{item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}</TD>
+                <TD align="right">
+                  {data.canAdmin || (data.canWrite && item.owner_id !== null && item.owner_id === data.memberId) ? (
+                    <Button size="sm" variant="destructive" onClick={() => item.id && remove(item.id)}>
+                      Delete
+                    </Button>
+                  ) : null}
+                </TD>
+              </TR>
+            ))}
+            {data.items.length === 0 ? <TableMessage colSpan={5}>No items yet.</TableMessage> : null}
+          </TBody>
+        </Table>
+      </TableFrame>
+    </Page>
   )
 }
