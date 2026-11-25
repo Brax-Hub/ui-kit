@@ -61,8 +61,16 @@ What it costs, two things.
 **The app says it wants a git dependency.** npm 12 fetches nothing from git unless the project opts in ("As of npm 12
 the default is `none`", its own words for `allow-git`), so the app's `.npmrc` has one line, `allow-git=root`: the git
 dependencies its own `package.json` names, and no other. Found here on npm 12.2.0, where the install is refused
-without it (`EALLOWGIT`); npm 10, which Node 22 carries, does not know the setting and installs either way. This is
-npm leaning away from git dependencies, and it is the one thing that would tip the choice to a registry later.
+without it (`EALLOWGIT`); the npm that comes with Node 22 installs with the line present (this repository's CI does).
+This is npm leaning away from git dependencies, and it is the one thing that would tip the choice to a registry later.
+
+Two things seen when the same commit was installed on Windows with npm 12 and on Linux with Node 22's npm
+(pull request 6). The lock file's hash of the package is the same on both, which `.gitattributes` (LF in every
+checkout) is there to keep. And the two write the address differently: npm 12 keeps `git+https://…` as `package.json`
+has it, the older one writes `git+ssh://git@github.com/…` whatever `package.json` says. The token lines below rewrite
+both forms, so CI and the image build work with either lock file. A PC that has no SSH key for GitHub and gets a lock
+file with the `ssh` form needs one git setting to read it over HTTPS (not needed with npm 12, and not run here):
+`git config --global url."https://github.com/Brax-Hub/ui-kit".insteadOf "ssh://git@github.com/Brax-Hub/ui-kit"`.
 
 **Wherever `npm ci` runs, git must be able to read this repository.**
 
