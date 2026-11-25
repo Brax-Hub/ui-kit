@@ -87,7 +87,12 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
     const unforced = await backend.db.query(`select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r' and not c.relforcerowsecurity`)
     expect('every public table forces RLS', unforced.rows.map((r) => r.relname), (t) => t.length === 0)
 
-    const tables = ['tenants', 'memberships', 'items', 'jobs', 'job_runs']
+    // The hub feed's cursor and two calendar notes, as the service writes them (src/server/hub/events.server.ts,
+    // src/server/events/register.ts): the owner's and Mia's.
+    await backend.db.query(`insert into public.hub_cursors (feed, cursor) values ('events', 'evt_000000000007')`)
+    await backend.db.query(`insert into public.calendar_changes (event, member_id, change, changed_at) values ('ev_owner', $1, 'created', now()), ('ev_mia', $2, 'changed', now())`, [MEMBERS.owner, MEMBERS.member])
+
+    const tables = ['tenants', 'memberships', 'items', 'jobs', 'job_runs', 'hub_cursors', 'calendar_changes']
     // 1. anon and a stranger read nothing.
     for (const t of [...tables, 'items_with_owner']) {
       expect(`anon sees no ${t}`, await count('anon', t), (n) => n === 0 || typeof n === 'string')
@@ -105,6 +110,8 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
       const admin = role === 'owner' || role === 'admin'
       expect(`${role} jobs access`, await count(role, 'jobs'), (n) => (admin ? n >= 0 : n === 0))
       expect(`${role} job_runs access`, await count(role, 'job_runs'), (n) => (admin ? n >= 0 : n === 0))
+      expect(`${role} reads the hub feed's cursor only as an admin`, await count(role, 'hub_cursors'), (n) => n === (admin ? 1 : 0))
+      expect(`${role} reads the calendar notes about themself only`, await count(role, 'calendar_changes'), (n) => n === own)
     }
     expect('a viewer never sees the owner\'s private item', await run('viewer', `select count(*) from public.items where id = '${OWNER_PRIVATE_ITEM}'`), (r) => r.ok && r.value === '0')
     expect('the owner sees their private item', await run('owner', `select count(*) from public.items where id = '${OWNER_PRIVATE_ITEM}'`), (r) => r.ok && r.value === '1')
@@ -142,6 +149,16 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
     expect('an admin cannot queue a run (denied)', await run('admin', `insert into public.job_runs (job, status, trigger) values ('heartbeat', 'queued', 'manual') returning id`), (r) => !r.ok)
     expect('a viewer cannot read jobs', await count('viewer', 'jobs'), (n) => n === 0)
 
+    // 5b. The hub feed's cursor and the calendar notes are the service's to write.
+    expect('an owner cannot move the cursor (zero rows)', await run('owner', `update public.hub_cursors set cursor = 'evt_000000000000' returning feed`), (r) => r.ok && r.rows.length === 0)
+    expect('an owner cannot insert a cursor', await run('owner', `insert into public.hub_cursors (feed, cursor) values ('other', 'evt_000000000001') returning feed`), denied)
+    expect('an owner cannot delete the cursor (zero rows)', await run('owner', `delete from public.hub_cursors returning feed`), (r) => r.ok && r.rows.length === 0)
+    expect('the service moves the cursor', await run('service', `update public.hub_cursors set cursor = 'evt_000000000008' where feed = 'events' returning cursor`), (r) => r.ok && r.value === 'evt_000000000008')
+    expect('a member cannot note a calendar change', await run('member', `insert into public.calendar_changes (event, member_id, change, changed_at) values ('ev_forged', $1, 'created', now()) returning event`, [MEMBERS.member]), denied)
+    expect('a member cannot rewrite their own note (zero rows)', await run('member', `update public.calendar_changes set change = 'deleted' where event = 'ev_mia' returning event`), (r) => r.ok && r.rows.length === 0)
+    expect('a member cannot delete their own note (zero rows)', await run('member', `delete from public.calendar_changes where event = 'ev_mia' returning event`), (r) => r.ok && r.rows.length === 0)
+    expect('the service notes a change twice and keeps one row', await run('service', `insert into public.calendar_changes (event, member_id, change, changed_at) values ('ev_mia', $1, 'deleted', now()) on conflict (event) do update set change = excluded.change returning change`, [MEMBERS.member]), (r) => r.ok && r.rows.length === 1 && r.value === 'deleted')
+
     // 6. An inactive member reads nothing and writes nothing, whatever their role.
     await backend.db.query(`update public.memberships set status = 'inactive' where id = $1`, [MEMBERS.admin])
     expect('an inactive admin sees no items', await count('admin', 'items'), (n) => n === 0)
@@ -155,6 +172,7 @@ export async function runRlsTest({ root = process.cwd(), log = console.log } = {
     expect('an outsider reads only their own tenant', await run('outsider', `select id from public.tenants`), (r) => r.ok && r.rows.length === 1 && r.value === OTHER_TENANT)
     expect('an outsider sees only their own team', await count('outsider', 'memberships'), (n) => n === 1)
     expect('an outsider sees no items of this tenant', await count('outsider', 'items'), (n) => n === 0)
+    expect('an outsider sees no calendar notes of this tenant', await count('outsider', 'calendar_changes'), (n) => n === 0)
     expect('an outsider cannot rename this tenant (zero rows)', await run('outsider', `update public.tenants set name = 'Taken' where id = '${TENANT}' returning id`), (r) => r.ok && r.rows.length === 0)
     expect('an outsider cannot change this tenant\'s roles (zero rows)', await run('outsider', `update public.memberships set role = 'viewer' where id = '${MEMBERS.member}' returning id`), (r) => r.ok && r.rows.length === 0)
     expect('an outsider cannot add an item to this tenant', await run('outsider', `insert into public.items (tenant_id, owner_id, title) values ($1, $2, 'x') returning title`, [TENANT, OUTSIDER]), denied)

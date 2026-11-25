@@ -10,6 +10,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calendar_changes: {
+        Row: {
+          event: string
+          member_id: string
+          uid: string | null
+          change: string
+          changed_at: string
+          noted_at: string
+        }
+        Insert: {
+          event: string
+          member_id: string
+          uid?: string | null
+          change: string
+          changed_at: string
+          noted_at?: string
+        }
+        Update: {
+          event?: string
+          member_id?: string
+          uid?: string | null
+          change?: string
+          changed_at?: string
+          noted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_changes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      hub_cursors: {
+        Row: {
+          feed: string
+          cursor: string
+          updated_at: string
+        }
+        Insert: {
+          feed: string
+          cursor: string
+          updated_at?: string
+        }
+        Update: {
+          feed?: string
+          cursor?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           id: string
