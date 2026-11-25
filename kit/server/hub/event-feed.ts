@@ -161,6 +161,7 @@ export function createEventFeed(options: EventFeedOptions): EventFeed {
   const status: FeedStatus = { state: 'idle', cursor: null, answers: 0, handled: 0, trouble: null, refused: null }
   let stopping: AbortController | null = null
   let running: Promise<void> | null = null
+  const refused = () => status.state === 'refused'
 
   /** One request, ended by `stop()` or when no answer came in time. */
   async function ask(query: FeedQuery, stop: AbortSignal): Promise<HubAnswer> {
@@ -194,7 +195,7 @@ export function createEventFeed(options: EventFeedOptions): EventFeed {
       const table = handlers()
       const kinds = Object.keys(table).sort()
       const starting = cursor === null
-      const answer = await ask(starting ? { kinds } : { after: cursor, kinds, wait, limit: options.limit }, stop)
+      const answer = await ask(cursor === null ? { kinds } : { after: cursor, kinds, wait, limit: options.limit }, stop)
       if (answer.status !== 200) {
         const code = refusalCode(answer.body)
         if (answer.status === 410 || (answer.status === 422 && code === 'invalid_cursor')) {
@@ -265,7 +266,7 @@ export function createEventFeed(options: EventFeedOptions): EventFeed {
     }
 
     let troubles = 0
-    while (!stop.aborted && status.state !== 'refused') {
+    while (!stop.aborted && !refused()) {
       let trouble: string | null
       try {
         trouble = await step()
@@ -273,7 +274,7 @@ export function createEventFeed(options: EventFeedOptions): EventFeed {
         if (stop.aborted) break
         trouble = message(error)
       }
-      if (status.state === 'refused') {
+      if (refused()) {
         log('not following: the hub refused', { code: status.refused })
         break
       }
@@ -307,7 +308,7 @@ export function createEventFeed(options: EventFeedOptions): EventFeed {
         .catch((error) => log('the feed ended on an error', { error: message(error) }))
         .finally(() => {
           running = null
-          if (status.state !== 'refused') status.state = 'stopped'
+          if (!refused()) status.state = 'stopped'
         })
     },
     async stop() {

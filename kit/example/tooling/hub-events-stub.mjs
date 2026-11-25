@@ -32,9 +32,9 @@ export const cursorText = (seq) => `evt_${String(seq).padStart(12, '0')}`
 
 /**
  * Start a stand-in hub on 127.0.0.1. `secondMs` is how long one second of `wait` lasts (a test makes it short);
- * `maxWait`, `page` and `maxWaiting` are the hub's settings with the hub's defaults.
+ * `maxWait`, `page` and `maxWaiting` are the hub's settings with the hub's defaults; `log` gets a line a request.
  */
-export async function standInHub({ port = 0, secondMs = 1000, maxWait = 25, page = 100, maxWaiting = 4, kinds = KINDS } = {}) {
+export async function standInHub({ port = 0, secondMs = 1000, maxWait = 25, page = 100, maxWaiting = 4, kinds = KINDS, log = null } = {}) {
   const state = { last: 0, pruned: 0, events: [], waiting: new Set(), granted: true, failures: [], drops: 0, requests: [], maxOpen: 0 }
   const sockets = new Set()
 
@@ -77,9 +77,11 @@ export async function standInHub({ port = 0, secondMs = 1000, maxWait = 25, page
   function events(req, res, url) {
     const seen = { at: Date.now(), after: url.searchParams.get('after'), kinds: url.searchParams.get('kinds'), wait: url.searchParams.get('wait'), limit: url.searchParams.get('limit'), status: null }
     state.requests.push(seen)
+    const told = (what) => log?.(`${new Date().toISOString()} after=${seen.after ?? '(none)'} wait=${seen.wait ?? 0} -> ${what}`)
     const answer = (status, body) => {
       seen.status = status
       seen.answeredAt = Date.now()
+      told(body.items ? `${status}, ${body.items.length} event(s), cursor ${body.cursor}` : `${status} ${body.detail}`)
       send(res, status, body)
     }
     if (state.drops > 0) {
@@ -130,7 +132,10 @@ export async function standInHub({ port = 0, secondMs = 1000, maxWait = 25, page
     state.maxOpen = Math.max(state.maxOpen, state.waiting.size)
     res.on('close', () => {
       // A caller that hangs up frees its place at once.
-      if (!res.writableEnded) seen.status = 'hung_up'
+      if (!res.writableEnded) {
+        seen.status = 'hung_up'
+        told('the caller hung up')
+      }
       leave()
     })
     const deadline = Date.now() + wait * secondMs
@@ -285,7 +290,7 @@ async function main() {
     return json
   }
   if (command === 'serve') {
-    const hub = await standInHub({ port })
+    const hub = await standInHub({ port, log: console.log })
     console.log(`hub events stub on ${hub.url}${PATH} (HUB_EVENTS_URL=${hub.url}); emit with: node tooling/hub-events-stub.mjs emit calendar_event.created --person dev-owner --event ev_1`)
   } else if (command === 'emit') {
     const kind = positional[1]

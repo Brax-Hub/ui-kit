@@ -8,7 +8,8 @@
 //
 // Managed files (the kit owns them; an app changes them only by changing the kit):
 //   kit/server/**            -> src/server/**         (except src/server/tools/** and src/server/db/database.types.ts)
-//   kit/dev/*                -> tooling/*             (the stub edge, the gateway stub, the AI stub)
+//   kit/dev/*                -> tooling/*             (the stub edge, the gateway stub, the AI stub, the stand-in
+//                                                     hub for the event feed)
 //   kit/tooling/*            -> tooling/*             (*.yml -> .github/workflows/, {{slug}} templated)
 //
 // Not managed: the app's own suites (tooling/rls-test.mjs, smoke.mjs, screenshots.mjs, mcp.test.mjs). They test the
