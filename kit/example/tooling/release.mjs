@@ -6,8 +6,7 @@
 // Usage: node tooling/release.mjs <version> [--image ghcr.io/<org>/<name>] [--push] [--platform linux/amd64]
 //   Without --push the image is built and tagged only, and nothing is written (a dry run that proves the build).
 //   The image name defaults to the manifest's image without its tag and digest.
-//   UI_KIT_TOKEN in the environment (a token that may read Brax-Hub/ui-kit, for instance `gh auth token`) is passed to
-//   the build as the secret the Dockerfile's `npm ci` clones the UI kit with.
+//   The build needs no secret: the Dockerfile's `npm ci` fetches the UI kit from a public repository.
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -47,7 +46,7 @@ function run(cmd, cmdArgs, options = {}) {
   return r.stdout?.trim() ?? ''
 }
 
-run('docker', ['build', '--platform', platform, ...(process.env.UI_KIT_TOKEN ? ['--secret', 'id=ui_kit_token,env=UI_KIT_TOKEN'] : []), '-t', tagged, '-t', `${image}:latest`, '.'])
+run('docker', ['build', '--platform', platform, '-t', tagged, '-t', `${image}:latest`, '.'])
 if (!push) {
   console.log(`built ${tagged}; add --push to push it and pin the digest`)
   process.exit(0)

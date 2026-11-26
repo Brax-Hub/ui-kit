@@ -8,7 +8,8 @@
    - the kit's other pieces that reach a page (the editor-side tooling, the dev stubs, the page in
      docs/design-system) carry no colour, face or part either;
    - no folder of the kit holds a parts folder, and the template of an app's rules tells no app to make one;
-   - an app made by kit/init.mjs names the UI kit by its tag and passes the same check;
+   - an app made by kit/init.mjs names the UI kit by its tag and passes the same check, and nothing it copies hands
+     git a token or takes a build secret (the repository is public since 26 November 2026);
    - the package an app gets from the tag holds the kit's files and nothing else, and the sample's lock file agrees
      with it. */
 import assert from "node:assert/strict";
@@ -85,6 +86,20 @@ test("an app made by kit/init.mjs names the UI kit by its tag and passes the che
   assert.ok(!existsSync(join(target, "package-lock.json")), "the sample's lock file went into the app");
   assert.match(readFileSync(join(target, "Dockerfile"), "utf8"), /COPY package\.json package-lock\.json \.npmrc \.\//, "the image build does not take the app's .npmrc");
   assert.deepEqual(checkApp(target), []);
+  // Brax-Hub/ui-kit is public (ADR-039 "Open" 9): an app installs the UI kit with a plain `npm ci`, in CI and in the
+  // image build alike. The lines that handed git a read-only token must not come back into what an app copies.
+  assert.match(readFileSync(join(target, "Dockerfile"), "utf8"), /^RUN npm ci --no-audit --no-fund\r?$/m, "the image build's install is not a plain `npm ci`");
+  for (const file of ["Dockerfile", ".github/workflows/ci.yml", ".github/workflows/release.yml", "tooling/release.mjs"]) {
+    assert.doesNotMatch(readFileSync(join(target, file), "utf8"), /UI_KIT_TOKEN|ui_kit_token|x-access-token|insteadOf|type=secret|--secret/, `${file} hands git a token, or the build a secret, for the UI kit`);
+  }
+});
+
+test("this repository's CI installs the UI kit as an app does, with no token", () => {
+  const ci = readFileSync(join(repo, ".github", "workflows", "ci.yml"), "utf8");
+  const byTag = ci.slice(ci.search(/^  by-tag:$/m));
+  assert.match(byTag, /npm install .*git\+https:\/\/github\.com\/Brax-Hub\/ui-kit\.git#/, "the by-tag job no longer installs the UI kit from git");
+  assert.match(byTag, /^    permissions: \{\}/m, "the by-tag job's own token may read something");
+  assert.doesNotMatch(ci, /x-access-token|github\.token|secrets\.|insteadOf/, "the workflow hands git a token");
 });
 
 test("the sample app takes the UI kit from this working tree, as a package", () => {

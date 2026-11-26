@@ -5,26 +5,18 @@
 # which are glibc builds (x86_64-unknown-linux-gnu / aarch64-unknown-linux-gnu) and do not run on musl. The binaries
 # are fetched once in the build stage into /opt/tinbase-pg, so a read-only container never downloads anything.
 #
-# The UI kit. package.json names it by its tag in a private repository (Brax-Hub/ui-kit), so `npm ci` clones it: the
-# build stage needs git, and a token that may read that repository. The token comes in as a build secret,
-#   docker build --secret id=ui_kit_token,env=UI_KIT_TOKEN .
-# and is handed to git through the environment of that one command: it is in no layer, no file and no later stage.
-# Needs BuildKit, which Docker has used by default since version 23. The app's .npmrc comes along because it is what
-# lets npm fetch from git at all (allow-git=root).
+# The UI kit. package.json names it by its tag in Brax-Hub/ui-kit, a public repository, so `npm ci` fetches it from
+# GitHub with no token, no build secret and no SSH key: `docker build .` is the whole command. The lock file holds the
+# commit, and npm takes that commit over HTTPS whichever way the lock file writes the address (git+https or git+ssh;
+# ui/README.md in Brax-Hub/ui-kit). git stays in the build stage for the day npm clones instead of downloading. The
+# app's .npmrc comes along because it is what lets npm fetch from git at all (allow-git=root).
 FROM node:22-bookworm-slim AS build
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
-RUN --mount=type=secret,id=ui_kit_token \
-    TOKEN="$(cat /run/secrets/ui_kit_token 2>/dev/null || true)" \
- && GIT_CONFIG_COUNT=2 \
-    GIT_CONFIG_KEY_0="url.https://x-access-token:${TOKEN}@github.com/Brax-Hub/ui-kit.insteadOf" \
-    GIT_CONFIG_VALUE_0="https://github.com/Brax-Hub/ui-kit" \
-    GIT_CONFIG_KEY_1="url.https://x-access-token:${TOKEN}@github.com/Brax-Hub/ui-kit.insteadOf" \
-    GIT_CONFIG_VALUE_1="ssh://git@github.com/Brax-Hub/ui-kit" \
-    npm ci --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build && npm prune --omit=dev
 # ensurePostgres(version, cacheDir): the pinned Postgres 17 tarball, checksum-verified, unpacked into the cache dir.

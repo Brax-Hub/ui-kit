@@ -23,7 +23,9 @@ Decided on 25 November 2026 with the first half of TASKS FE04, by the session th
 by the owner. Proven on the module kit's sample app, `kit/example`, and in this repository's CI (`by-tag`).
 
 **The UI kit is a package of this repository, `@brax-hub/ui`, and an app names it by this repository's tag.** npm
-installs it straight from git; nothing is published anywhere else.
+installs it straight from git; nothing is published anywhere else. The repository is public since 26 November 2026
+(the owner's decision that day, "Make ui-kit public"; ADR-039 "Open" 9), so the install needs no token, no secret
+and no SSH key, on a PC, in CI or in an image build.
 
 ```json
 "dependencies": {
@@ -33,10 +35,10 @@ installs it straight from git; nothing is published anywhere else.
 
 Why this way:
 
-- **The repository is private and has no registry.** A tag is this repository's one way of publishing (AGENTS.md,
-  "Publish by tag"), and npm reads a tag from git with the credentials git already has. There is no registry to keep,
-  no publish step to fail or forget, and a developer or an agent session that can clone this repository can install
-  the kit with no setup.
+- **The repository has no registry.** A tag is this repository's one way of publishing (AGENTS.md, "Publish by
+  tag"), and npm reads a tag of a public repository from GitHub with no credential. There is no registry to keep, no
+  publish step to fail or forget, and a developer, an agent session, a CI job or an image build installs the kit with
+  no setup.
 - **The version cannot move under an app.** The lock file records the commit the tag pointed at, so `npm ci` gets that
   commit every time, even if a tag were moved.
 - **The app imports and holds no copy** (ADR-039 rule 2). The parts are in `node_modules`, never in the app's tree,
@@ -46,17 +48,17 @@ Why this way:
 
 Considered and not chosen:
 
-- **GitHub Packages as an npm registry.** The usual answer for a private package. It adds a publish workflow that has
-  to run on every tag, a token with package rights on every machine that installs (a developer's too: git's
-  credentials do not count there), and access to grant per repository. The lines an app writes would be the same, so
-  moving to a registry later changes one string in `package.json`.
+- **GitHub Packages as an npm registry.** The usual answer for a private package, which this was when the choice was
+  made. It adds a publish workflow that has to run on every tag, a token with package rights on every machine that
+  installs (a developer's too: git's credentials do not count there), and access to grant per repository. The lines an
+  app writes would be the same, so moving to a registry later changes one string in `package.json`.
 - **A copy by tag with a test on its hash**, as the hub server keeps `values.css` (below). Right for one stylesheet
   that a server which is not Node must serve from its own origin; for an app it would be a copy of every part, which
   rule 2 rules out.
 - **The address of an archive of the tag.** GitHub does not promise the bytes of a generated archive stay the same,
   and the lock file pins those bytes.
 
-What it costs, two things.
+What it costs, one thing.
 
 **The app says it wants a git dependency.** npm 12 fetches nothing from git unless the project opts in ("As of npm 12
 the default is `none`", its own words for `allow-git`), so the app's `.npmrc` has one line, `allow-git=root`: the git
@@ -64,24 +66,52 @@ dependencies its own `package.json` names, and no other. Found here on npm 12.2.
 without it (`EALLOWGIT`); the npm that comes with Node 22 installs with the line present (this repository's CI does).
 This is npm leaning away from git dependencies, and it is the one thing that would tip the choice to a registry later.
 
-Two things seen when the same commit was installed on Windows with npm 12 and on Linux with Node 22's npm
-(pull request 6). The lock file's hash of the package is the same on both, which `.gitattributes` (LF in every
-checkout) is there to keep. And the two write the address differently: npm 12 keeps `git+https://…` as `package.json`
-has it, the older one writes `git+ssh://git@github.com/…` whatever `package.json` says. The token lines below rewrite
-both forms, so CI and the image build work with either lock file. A PC that has no SSH key for GitHub and gets a lock
-file with the `ssh` form needs one git setting to read it over HTTPS (not needed with npm 12, and not run here):
-`git config --global url."https://github.com/Brax-Hub/ui-kit".insteadOf "ssh://git@github.com/Brax-Hub/ui-kit"`.
+Two things seen when the same commit was installed on Windows with npm 12 and on Linux with Node 22's npm (pull
+request 6 of the repository as it was before it became public, now `Brax-Hub/ui-kit-archive`). The lock file's hash of
+the package is the same on both, which `.gitattributes` (LF in every checkout) is there to keep. And the two write the
+address differently: npm 12 keeps `git+https://…` as `package.json` has it, the older one writes
+`git+ssh://git@github.com/…` whatever `package.json` says.
 
-**Wherever `npm ci` runs, git must be able to read this repository.**
+Both forms install with no credential and no SSH key. The lock file holds the commit, and npm fetches that commit
+from GitHub over HTTPS whichever way the address is written. So no git setting rewrites the address any more, with a
+token in it or without. Checked on 26 November 2026, each time with nothing for git to authenticate
+with (no token, no credential helper, no prompt, no key):
+
+- on a clean GitHub runner (Node 22's npm), where this repository's `by-tag` job now does it on every pull request:
+  the install from git, then `npm ci` from the lock file alone under each form, from an empty npm cache, with an ssh
+  that refuses and writes down that it was asked ("ssh was never asked");
+- in the base image of the module kit's build stage (`node:22-bookworm-slim`, npm 10.9.9, which has no ssh program),
+  each form, without git and with it;
+- on Windows with npm 12.2.0, each form.
+
+**Wherever `npm ci` runs, it needs the network and nothing else.**
 
 | Where | What it needs |
 | --- | --- |
-| A developer's PC, an agent session | Nothing new: git's own credentials (`gh auth setup-git`). |
-| An app's CI | A secret `UI_KIT_TOKEN`, a token that may read `Brax-Hub/ui-kit` (contents, read only), handed to git in the environment of `npm ci`. The module kit's `tooling/ci.yml` and `release.yml` carry the lines; this repository's own `ci.yml` (`by-tag`) runs the same lines on every pull request. |
-| An app's image build | The same token as a build secret, and git in the build stage: the module kit's `Dockerfile` (`docker build --secret id=ui_kit_token,env=UI_KIT_TOKEN .`). |
+| A developer's PC, an agent session | Nothing. |
+| An app's CI | Nothing: a plain `npm ci`, as the module kit's `tooling/ci.yml` and `release.yml` have it. |
+| An app's image build | Nothing: `docker build .`, no build secret. The module kit's `Dockerfile` keeps git in the build stage for the day npm clones the repository instead of downloading the commit. |
 
-The token is the owner's to make (one for the organisation). If the owner later makes the kit public, which it could be
-(it holds no secret and no licensed face), the token and those lines go and nothing else changes.
+### An app that copied the module kit before 26 November 2026
+
+Until that day the repository was private, and the module kit handed git a read-only token, the secret
+`UI_KIT_TOKEN`, in CI and in the image build. The token was never made. An app made before then still carries the
+lines, and they go. They are in four files the kit manages, so `node kit/init.mjs --sync <slug> <dir>`, run from a
+checkout of this repository, rewrites them, along with every other managed file that changed since the app was made.
+By hand:
+
+- `.github/workflows/ci.yml` and `release.yml`: the `env:` block under every `npm ci` (`GIT_CONFIG_COUNT` and the
+  four lines after it) and the comment at the top that asks for the secret; in `release.yml` also the `secrets:`
+  entry of the step that builds the image;
+- `Dockerfile`: the command that starts `RUN --mount=type=secret,id=ui_kit_token` becomes
+  `RUN npm ci --no-audit --no-fund`;
+- `tooling/release.mjs`: the `--secret` argument of `docker build`;
+- the secret `UI_KIT_TOKEN` in the app's repository or organisation, if one was made after all.
+
+`package.json`, `.npmrc` and the lock file do not change, and no new tag of the UI kit is needed: the lines were in
+files an app copies from the module kit, never in the package. An app is not broken while it still has them: with the
+old address rewrite and an empty token in it, `npm ci` was seen to install both forms of the address (26 November
+2026, npm 12.2.0).
 
 ### The lines an app adds
 
@@ -189,7 +219,7 @@ A release that changes `values.css` is followed by the hub server taking the new
 | Version | Tag | What it added |
 | --- | --- | --- |
 | 0.1.0 | `ui-v0.1.0` | The values, the theme, 33 parts. Not installable as a package: the package file was in `ui/`. |
-| 0.2.0 | `ui-v0.2.0` (to be made) | The package at the repository's root; the app frame (`parts/app-frame.tsx`); `vite.js`, `lib/hub.ts`, `check/`. `values.css` is unchanged, so the hub server's copy stays right. |
+| 0.2.0 | `ui-v0.2.0` | The package at the repository's root; the app frame (`parts/app-frame.tsx`); `vite.js`, `lib/hub.ts`, `check/`. `values.css` is unchanged, so the hub server's copy stays right. |
 
 ## Light and dark, the accent, the faces
 
@@ -279,4 +309,5 @@ copy of a part and no colour of its own; the sample app passes the app's check; 
 this version's tag; the package holds the kit's files and nothing else).
 
 The same runs on every pull request (`.github/workflows/ci.yml`: `ui`, `kit` for the sample app's gate and unit
-tests, and `by-tag`, which installs the package from git at the pull request's commit the way an app does).
+tests, and `by-tag`, which installs the package from git at the pull request's commit the way an app does: with
+nothing to authenticate with).
