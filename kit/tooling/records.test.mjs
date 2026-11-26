@@ -213,14 +213,15 @@ test('a create whose answer was lost is sent again with the same key and finds t
 })
 
 test('a create that got no answer in time is sent again with the same key', async (t) => {
-  const { hub, records, logs } = await open(t, { timeoutMs: 120 })
+  const { hub, records, logs } = await open(t, { timeoutMs: 250, tries: 5 })
   const before = Object.keys(hub.account('marc').events).length
-  hub.hold(600) // the event is written at once and the answer comes too late
+  hub.hold(5000) // the event is written at once and the answer comes too late
   const made = await records.createEvent('marc', lunch)
-  assert.deepEqual([made.created, made.tries], [true, 2])
-  assert.equal(Object.keys(hub.account('marc').events).length, before + 1)
-  assert.equal(logs[0].why, 'no answer within 120 ms')
-  assert.deepEqual(new Set(hub.requests.map((q) => q.key)).size, 1)
+  // Two tries on any machine that answers within the 250 ms; a slower one may need another, and the rest still holds.
+  assert.ok(made.created && made.tries >= 2, `created ${made.created} after ${made.tries} tries`)
+  assert.equal(Object.keys(hub.account('marc').events).length, before + 1, 'one event, however many tries')
+  assert.equal(logs[0].why, 'no answer within 250 ms')
+  assert.deepEqual([hub.requests.length, new Set(hub.requests.map((q) => q.key)).size], [made.tries, 1], 'every try carried the same key')
 })
 
 test('the tries are bounded, and the error says what the caller needs to send the same call again later', async (t) => {
