@@ -1,7 +1,7 @@
 /* The sections of the parts page (parts.html): one per part or group of parts, each naming the prototype section it
    is compared with. The render test (test/parts.test.mjs) renders every one to static markup without a browser. */
-import { AlarmClock, Bell, Building2, CalendarClock, Folder, Grid3x3, Pencil, Search, Share, Trash2, WifiOff } from "lucide-react";
-import type { ComponentType } from "react";
+import { AlarmClock, Bell, Building2, CalendarClock, FileText, Folder, Grid3x3, LayoutDashboard, Pencil, Search, Settings, Share, Trash2, Users, WifiOff } from "lucide-react";
+import { useState, type ComponentType } from "react";
 import {
   Alert, AlertDescription, AppFrame, AppMain, Rail, RailCount, RailItem, RailLabel, Toolbar, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger, AlertTitle, Avatar, Badge, Banner, Breadcrumbs, Button, Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle, CheckField,
@@ -12,6 +12,7 @@ import {
   ResizableHandle, ResizablePanel, Section, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Sheet, SheetBody, SheetContent, SheetHeader,
   SheetTitle, SheetTrigger, Skeleton, SkeletonRows, Slider, StatTile, Switch, TBody, TD, TH, THead, TR, Table, TableFrame, Tabs, TabsContent, TabsList, TabsTrigger, Tag,
   Textarea, Toaster, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipProvider, toast,
+  Calendar, DatePicker, DayItem, DayMore, RailGroup, RailToggle, SeriesSwatch, cn, seriesBg, type DayState, type SeriesNumber,
 } from "../parts/index.ts";
 
 export type SectionDef = { title: string; parts: string; prototype?: string; render: ComponentType };
@@ -96,13 +97,18 @@ export const sections: SectionDef[] = [
   },
   {
     title: "Status labels, tags, meters",
-    parts: "badge (Badge, Tag, CountBadge), progress (Progress, Meter), slider, skeleton, separator",
+    parts: "badge (Badge with ok, warn, risk, info, verified, accent; Tag; CountBadge with accent, neutral, risk, info), progress (Progress, Meter), slider, skeleton, separator",
     prototype: "Status and storage",
     render: () => (
       <div className="flex flex-col gap-4">
         <Row>
           <Badge dot tone="ok">Working</Badge><Badge dot tone="warn">Needs a look</Badge><Badge dot tone="risk">Not working</Badge><Badge dot tone="accent">Asks for you</Badge><Badge>Neutral</Badge><Badge variant="outline">Outline</Badge>
           <Tag>Work</Tag><Tag>Kitchen renovation</Tag><CountBadge>9</CountBadge>
+        </Row>
+        <Row>
+          <Badge dot tone="info">Open</Badge><Badge dot tone="verified">Verified</Badge><Badge tone="info">Queued</Badge><Badge tone="verified">Owner</Badge>
+          <span className="flex items-center gap-2 text-small text-ink-3">Counts: <CountBadge tone="neutral">12</CountBadge><CountBadge tone="risk">2</CountBadge><CountBadge tone="info">4</CountBadge><CountBadge>9</CountBadge></span>
+          <span className="text-small text-ink-3">Info is open or under way; verified is checked by a person. The red count is what is overdue.</span>
         </Row>
         <div className="flex flex-col gap-2">
           <Meter segments={[{ value: 18 }, { value: 12, tone: "ink-3" }, { value: 5, tone: "ink-4" }, { value: 1, tone: "line" }]} aria-label="Storage" /><span className="text-small text-ink-3">18.4 GB used · 3.3 TB free</span>
@@ -142,6 +148,7 @@ export const sections: SectionDef[] = [
       <div className="flex flex-col gap-3.5">
         <Alert>Items in Trash are deleted forever after 30 days.</Alert>
         <Alert tone="accent" action={<Link>Review</Link>}>2 people asked for access</Alert>
+        <Alert tone="info">Account numbers are entered by an owner or an admin.</Alert>
         <Alert tone="warn">Storage is 92% full: 46 GB of 50 GB.</Alert>
         <Alert tone="risk"><AlertTitle>Storage is full</AlertTitle><AlertDescription>Uploads are paused and new mail is not being received.</AlertDescription></Alert>
         <Row>
@@ -244,6 +251,10 @@ export const sections: SectionDef[] = [
           <StatTile label="Overdue" value="2" subtitle="Past their date" icon={<AlarmClock aria-hidden />} tone="risk" />
           <StatTile label="Due soon" value="5" subtitle="Next 30 days" icon={<CalendarClock aria-hidden />} tone="warn" />
         </div>
+        <div className="grid grid-cols-3 gap-4">
+          <StatTile label="Open" value="7" subtitle="Filings not yet lodged" tone="info" />
+          <StatTile label="Verified" value="31" subtitle="Documents checked" tone="verified" />
+        </div>
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Storage</CardTitle><Link>Manage</Link></CardHeader>
@@ -300,6 +311,30 @@ export const sections: SectionDef[] = [
     ),
   },
   {
+    title: "A rail that collapses",
+    parts: "app-frame (Rail with collapsed and onCollapsedChange, RailToggle, RailGroup, RailCount with a tone)",
+    prototype: "App rail",
+    render: () => (
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-4">
+          <CollapsingRail />
+          <CollapsingRail startCollapsed />
+        </div>
+        <p className="text-small text-ink-3">The app holds whether the rail is open; the button asks it to change. As icons, each item shows its words in a tooltip and keeps its name for a screen reader; a plain count is dropped and the red one becomes a dot. A group's label opens and closes it.</p>
+      </div>
+    ),
+  },
+  {
+    title: "Chart colours",
+    parts: "series (seriesBg, seriesFill, seriesStroke, SeriesSwatch), progress (Meter with series); the values --series-1 to --series-6 and --on-series",
+    render: () => <ChartColours />,
+  },
+  {
+    title: "Calendar and date picker",
+    parts: "calendar (CalendarGrid, Calendar, DayItem, DayMore), date-picker (DatePicker); lib/dates",
+    render: () => <Calendars />,
+  },
+  {
     title: "Collapsible and resizable",
     parts: "collapsible, resizable",
     render: () => (
@@ -319,3 +354,129 @@ export const sections: SectionDef[] = [
     ),
   },
 ];
+
+function CollapsingRail({ startCollapsed = false }: { startCollapsed?: boolean }) {
+  const [collapsed, setCollapsed] = useState(startCollapsed);
+  return (
+    <AppFrame className="h-90 min-h-0 border border-line">
+      <Rail aria-label={startCollapsed ? "Records, as icons (example)" : "Records (example)"} collapsed={collapsed} onCollapsedChange={setCollapsed}>
+        <RailToggle label={collapsed ? "Open the menu" : "Collapse the menu"} />
+        <RailItem on><LayoutDashboard />Dashboard</RailItem>
+        <RailGroup label="Records">
+          <RailItem><Building2 />Entities<RailCount>12</RailCount></RailItem>
+          <RailItem><CalendarClock />Deadlines<RailCount tone="danger">2</RailCount></RailItem>
+          <RailItem asChild><a href="#filings"><FileText />Filings</a></RailItem>
+        </RailGroup>
+        <RailGroup label="Settings" defaultOpen={false}>
+          <RailItem><Users />Members</RailItem>
+          <RailItem><Settings />Workspace</RailItem>
+        </RailGroup>
+      </Rail>
+      <AppMain className="gap-4 p-6">
+        <Skeleton className="w-3/5" /><Skeleton className="w-2/5" />
+      </AppMain>
+    </AppFrame>
+  );
+}
+
+/* Plain sample data: who holds what of a made-up company, issued and with options counted in. */
+type Holder = { name: string; issued: number; diluted: number; series: SeriesNumber | "rest" };
+const holders: Holder[] = [
+  { name: "Dana Smith", issued: 42, diluted: 36, series: 1 },
+  { name: "Alex Smith", issued: 23, diluted: 20, series: 2 },
+  { name: "Jo Lee", issued: 14, diluted: 13, series: 3 },
+  { name: "Pat Singh", issued: 9, diluted: 9, series: 4 },
+  { name: "Sam Okafor", issued: 6, diluted: 7, series: 5 },
+  { name: "Kim Tran", issued: 4, diluted: 5, series: 6 },
+  { name: "3 others", issued: 2, diluted: 10, series: "rest" },
+];
+const weekly = [3, 5, 2, 8, 6, 4, 7];
+
+function ChartColours() {
+  const bars = [{ label: "Issued", value: (h: Holder) => h.issued }, { label: "Fully diluted", value: (h: Holder) => h.diluted }];
+  const fill = (s: SeriesNumber | "rest") => (s === "rest" ? "bg-line-strong text-ink-1" : cn(seriesBg[s - 1], "text-on-series"));
+  return (
+    <div className="flex flex-col gap-5">
+      <Row>
+        {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+          <span key={n} className={cn("flex h-control w-20 items-center justify-center font-mono text-small text-on-series", seriesBg[n - 1])}>{n}</span>
+        ))}
+        <span className="flex h-control w-20 items-center justify-center bg-line-strong font-mono text-small text-ink-1">others</span>
+      </Row>
+      <p className="max-w-180 text-small text-ink-3">Six, in order, computed from the hub's accent: series 1 is its hue, the rest are that hue turned a sixth of the circle at a time, and neighbours alternate between a lighter and a darker step so that they stay apart without their hue. Pick another accent at the top of the page and they follow.</p>
+      {bars.map((bar) => (
+        <div key={bar.label} className="flex flex-col gap-1.5">
+          <span className="text-small text-ink-3">{bar.label}</span>
+          <div role="img" aria-label={bar.label + ": " + holders.map((h) => h.name + " " + bar.value(h) + "%").join(", ")} className="flex h-7 w-full gap-0.5">
+            {holders.map((h) => (
+              <div key={h.name} className={cn("flex h-full min-w-0 items-center overflow-hidden px-1.5 font-mono text-small tabular-nums", fill(h.series))} style={{ width: bar.value(h) + "%" }}>
+                {bar.value(h) >= 9 ? bar.value(h) + "%" : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+        {holders.map((h) => (
+          <li key={h.name} className="flex items-center gap-2 text-body">
+            <SeriesSwatch series={h.series} />
+            <span className="min-w-0 flex-1 truncate">{h.name}</span>
+            <span className="font-mono text-small text-ink-3 tabular-nums">{h.issued}% issued · {h.diluted}% diluted</span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-2">
+        <Meter segments={[{ value: 42, series: 1 }, { value: 23, series: 2 }, { value: 14, series: 3 }, { value: 9, tone: "line" }]} aria-label="Shares: Dana Smith 42%, Alex Smith 23%, Jo Lee 14%, others 9%" />
+        <span className="text-small text-ink-3">The meter takes a series for a segment.</span>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div role="img" aria-label="Filings a day this week: 3, 5, 2, 8, 6, 4, 7; Thursday, 8, is the day in front" className="flex h-24 items-end gap-2">
+          {weekly.map((n, i) => <i key={i} className={cn("block w-10", i === 3 ? "bg-accent" : "bg-line-strong")} style={{ height: n * 12 + "%" }} />)}
+        </div>
+        <span className="text-small text-ink-3">One series is not coloured by series: grey bars, and the accent for the one in front.</span>
+      </div>
+    </div>
+  );
+}
+
+/* Plain sample data: what falls due in November 2026. */
+const due: Record<string, { title: string; tone: "risk" | "warn" | "info" | "ok" | "neutral" }[]> = {
+  "2026-11-03": [{ title: "Annual return", tone: "ok" }],
+  "2026-11-12": [{ title: "VAT return, Q3", tone: "risk" }],
+  "2026-11-26": [{ title: "Board minutes", tone: "warn" }, { title: "Payroll filing", tone: "info" }, { title: "Lease renewal", tone: "info" }, { title: "Licence fee", tone: "neutral" }],
+  "2026-11-30": [{ title: "Tax instalment", tone: "info" }],
+  "2026-12-01": [{ title: "Insurance renewal", tone: "info" }],
+};
+
+function Calendars() {
+  const [picked, setPicked] = useState<string>("2026-11-18");
+  const [day, setDay] = useState<string | null>("2026-11-12");
+  const cell = ({ date }: DayState) => {
+    const items = due[date] ?? [];
+    return (
+      <>
+        {items.slice(0, 3).map((it) => <DayItem key={it.title} tone={it.tone}>{it.title}</DayItem>)}
+        {items.length > 3 ? <DayMore>{items.length - 3} more</DayMore> : null}
+      </>
+    );
+  };
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-[auto_1fr] items-start gap-8">
+        <div className="flex flex-col gap-4">
+          <Field className="w-60"><Label htmlFor="p-due">Due on</Label><DatePicker id="p-due" name="due_on" value={picked} onValueChange={setPicked} today="2026-11-26" min="2026-01-01" /><HelpText>Typed year first, or picked from the month.</HelpText></Field>
+          <div className="border border-line p-3">
+            <Calendar selected={picked || null} onSelect={setPicked} defaultMonth="2026-11" today="2026-11-26" isMarked={(date) => date in due} weekNumbers />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 text-small text-ink-3">
+          <p>The small month: today is filled with the accent, the day chosen has the accent frame, a day of another month is dim, a dot marks a day that holds something. With the keyboard on a day: the arrows move by a day and a week, Home and End to the ends of the week, Page Up and Page Down by a month (with Shift, a year), Enter chooses.</p>
+          <p>Chosen: <span className="font-mono text-ink-1">{picked || "none"}</span></p>
+        </div>
+      </div>
+      <div className="border border-line">
+        <Calendar size="month" defaultMonth="2026-11" today="2026-11-26" selected={day} onSelect={setDay} todayLabel="Today" renderDay={cell} />
+      </div>
+    </div>
+  );
+}
