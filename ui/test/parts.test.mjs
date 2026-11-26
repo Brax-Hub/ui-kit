@@ -158,6 +158,7 @@ test("the count badge and the status label take the tones", async () => {
   assert.match(markup(parts.Alert, { tone: "info" }, "Note"), /data-tone="info"[^>]*bg-info-bg/);
   assert.match(markup(parts.SeriesSwatch, { series: 3 }), /bg-series-3/);
   assert.match(markup(parts.SeriesSwatch, { series: "rest" }), /bg-line-strong/);
+  assert.match(markup(parts.SeriesSwatch, { series: "open" }), /bg-series-open/);
   assert.match(markup(parts.Meter, { segments: [{ value: 40, series: 2 }, { value: 10, tone: "line" }] }), /bg-series-2[\s\S]*bg-line-strong/);
 });
 

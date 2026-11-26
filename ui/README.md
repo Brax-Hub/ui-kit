@@ -284,7 +284,8 @@ shadcn's names should know:
   `text-on-series` for a number printed inside a part and `SeriesSwatch` for a legend's key. They are computed from
   the hub's accent (`values.css`, "the colours of a chart's series"): series 1 is its hue, the others that hue turned
   a sixth of the circle at a time, neighbours alternating between a lighter and a darker step. Use them in order,
-  by what a part is and not by its rank; what is left after six is `bg-line-strong`, named "others". A chart of
+  by what a part is and not by its rank; what is left after six is `bg-line-strong` (`seriesRest`), named "others",
+  and a part that belongs to nobody yet is the hatch `bg-series-open` (`seriesOpen`). A chart of
   one series is grey bars with `bg-accent` for the one in front, as the prototype's are. The kit holds no chart
   library and draws no chart.
 - **Calendar** (0.3.0). `CalendarGrid` is a month of days: `size="mini"` is the small month (30px days), `size="month"`

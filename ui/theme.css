@@ -56,6 +56,7 @@
   --color-series-5: var(--series-5);
   --color-series-6: var(--series-6);
   --color-on-series: var(--on-series);
+  --background-image-series-open: var(--series-open);   /* bg-series-open: the hatched part that belongs to nobody yet */
   --color-button-2: var(--button-2);
   --color-button-2-hover: var(--button-2-hover);
   --color-button-2-hover-text: var(--button-2-hover-text);

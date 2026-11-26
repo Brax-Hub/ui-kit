@@ -188,6 +188,9 @@
   --series-5: light-dark(var(--series-5-light), var(--series-5-dark));
   --series-6: light-dark(var(--series-6-light), var(--series-6-dark));
   --on-series: light-dark(#FFFFFF, #0B0D12);     /* a number printed inside a part of a chart: hub.css 11 paper · 41 os-bg */
+  /* The part of a whole that belongs to nobody yet (Entity Hub's option pool not yet granted): not a colour but a
+     texture, thin diagonal lines in the meta-text colour, so it cannot be taken for a seventh series. */
+  --series-open: repeating-linear-gradient(135deg, var(--ink-3) 0 2px, transparent 2px 6px);
 
   /* ---- faces (ADR-039 D5; hub.css 9-10) ---- */
   --face-text: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; /* ADR-039 D5: Inter for reading text, forms and tables (departure 1) */

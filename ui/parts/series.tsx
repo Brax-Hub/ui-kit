@@ -12,7 +12,8 @@ import { cn } from "../lib/cn.ts";
 
    The rules that keep a chart readable, which the colours alone cannot hold:
    - The colour follows the thing, not its rank: a holder keeps its colour when a filter hides another.
-   - Six at most. What is left takes `rest` (--line-strong), named "others"; a seventh colour is never made up.
+   - Six at most. What is left takes `seriesRest` (--line-strong), named "others"; a seventh colour is never made
+     up. A part that belongs to nobody yet takes `seriesOpen`, a hatch.
    - Neighbours in the order are told apart by lightness as well as hue, so draw parts in the order of their numbers.
    - Names and numbers beside a chart stay in the text colours; the swatch carries the identity, with the name
      always written next to it.
@@ -24,7 +25,12 @@ export const seriesBg = ["bg-series-1", "bg-series-2", "bg-series-3", "bg-series
 export const seriesFill = ["fill-series-1", "fill-series-2", "fill-series-3", "fill-series-4", "fill-series-5", "fill-series-6"] as const;
 export const seriesStroke = ["stroke-series-1", "stroke-series-2", "stroke-series-3", "stroke-series-4", "stroke-series-5", "stroke-series-6"] as const;
 
+/* The two fills that are not a series: `rest` for what is left after six ("others"), and `open` for the part of a
+   whole that belongs to nobody yet (an option pool not yet granted), a hatch and not a colour. */
+export const seriesRest = "bg-line-strong";
+export const seriesOpen = "bg-series-open";
+
 /* The key of a legend: a 12px square in the series' colour. The name is written beside it by the caller. */
-export function SeriesSwatch({ series, className, ...props }: React.ComponentProps<"span"> & { series: SeriesNumber | "rest" }) {
-  return <span aria-hidden data-series={series} className={cn("inline-block size-3 shrink-0", series === "rest" ? "bg-line-strong" : seriesBg[series - 1], className)} {...props} />;
+export function SeriesSwatch({ series, className, ...props }: React.ComponentProps<"span"> & { series: SeriesNumber | "rest" | "open" }) {
+  return <span aria-hidden data-series={series} className={cn("inline-block size-3 shrink-0", series === "rest" ? seriesRest : series === "open" ? seriesOpen : seriesBg[series - 1], className)} {...props} />;
 }

@@ -12,7 +12,7 @@ import {
   ResizableHandle, ResizablePanel, Section, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Sheet, SheetBody, SheetContent, SheetHeader,
   SheetTitle, SheetTrigger, Skeleton, SkeletonRows, Slider, StatTile, Switch, TBody, TD, TH, THead, TR, Table, TableFrame, Tabs, TabsContent, TabsList, TabsTrigger, Tag,
   Textarea, Toaster, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipProvider, toast,
-  Calendar, DatePicker, DayItem, DayMore, RailGroup, RailToggle, SeriesSwatch, cn, seriesBg, type DayState, type SeriesNumber,
+  Calendar, DatePicker, DayItem, DayMore, RailGroup, RailToggle, SeriesSwatch, cn, seriesBg, seriesOpen, seriesRest, type DayState, type SeriesNumber,
 } from "../parts/index.ts";
 
 export type SectionDef = { title: string; parts: string; prototype?: string; render: ComponentType };
@@ -380,7 +380,7 @@ function CollapsingRail({ startCollapsed = false }: { startCollapsed?: boolean }
 }
 
 /* Plain sample data: who holds what of a made-up company, issued and with options counted in. */
-type Holder = { name: string; issued: number; diluted: number; series: SeriesNumber | "rest" };
+type Holder = { name: string; issued: number; diluted: number; series: SeriesNumber | "rest" | "open" };
 const holders: Holder[] = [
   { name: "Dana Smith", issued: 42, diluted: 36, series: 1 },
   { name: "Alex Smith", issued: 23, diluted: 20, series: 2 },
@@ -388,29 +388,31 @@ const holders: Holder[] = [
   { name: "Pat Singh", issued: 9, diluted: 9, series: 4 },
   { name: "Sam Okafor", issued: 6, diluted: 7, series: 5 },
   { name: "Kim Tran", issued: 4, diluted: 5, series: 6 },
-  { name: "3 others", issued: 2, diluted: 10, series: "rest" },
+  { name: "3 others", issued: 2, diluted: 4, series: "rest" },
+  { name: "Option pool, not yet granted", issued: 0, diluted: 6, series: "open" },
 ];
 const weekly = [3, 5, 2, 8, 6, 4, 7];
 
 function ChartColours() {
   const bars = [{ label: "Issued", value: (h: Holder) => h.issued }, { label: "Fully diluted", value: (h: Holder) => h.diluted }];
-  const fill = (s: SeriesNumber | "rest") => (s === "rest" ? "bg-line-strong text-ink-1" : cn(seriesBg[s - 1], "text-on-series"));
+  const fill = (s: Holder["series"]) => (s === "rest" ? cn(seriesRest, "text-ink-1") : s === "open" ? seriesOpen : cn(seriesBg[s - 1], "text-on-series"));
   return (
     <div className="flex flex-col gap-5">
       <Row>
         {([1, 2, 3, 4, 5, 6] as const).map((n) => (
           <span key={n} className={cn("flex h-control w-20 items-center justify-center font-mono text-small text-on-series", seriesBg[n - 1])}>{n}</span>
         ))}
-        <span className="flex h-control w-20 items-center justify-center bg-line-strong font-mono text-small text-ink-1">others</span>
+        <span className={cn("flex h-control w-20 items-center justify-center font-mono text-small text-ink-1", seriesRest)}>others</span>
+        <span className={cn("flex h-control w-20 items-center justify-center border border-line font-mono text-small text-ink-1", seriesOpen)}><span className="bg-bg px-1">open</span></span>
       </Row>
-      <p className="max-w-180 text-small text-ink-3">Six, in order, computed from the hub's accent: series 1 is its hue, the rest are that hue turned a sixth of the circle at a time, and neighbours alternate between a lighter and a darker step so that they stay apart without their hue. Pick another accent at the top of the page and they follow.</p>
+      <p className="max-w-180 text-small text-ink-3">Six, in order, computed from the hub's accent: series 1 is its hue, the rest are that hue turned a sixth of the circle at a time, and neighbours alternate between a lighter and a darker step so that they stay apart without their hue. Pick another accent at the top of the page and they follow. What is left after six is grey; what belongs to nobody yet is hatched.</p>
       {bars.map((bar) => (
         <div key={bar.label} className="flex flex-col gap-1.5">
           <span className="text-small text-ink-3">{bar.label}</span>
-          <div role="img" aria-label={bar.label + ": " + holders.map((h) => h.name + " " + bar.value(h) + "%").join(", ")} className="flex h-7 w-full gap-0.5">
-            {holders.map((h) => (
+          <div role="img" aria-label={bar.label + ": " + holders.filter((h) => bar.value(h) > 0).map((h) => h.name + " " + bar.value(h) + "%").join(", ")} className="flex h-7 w-full gap-0.5">
+            {holders.filter((h) => bar.value(h) > 0).map((h) => (
               <div key={h.name} className={cn("flex h-full min-w-0 items-center overflow-hidden px-1.5 font-mono text-small tabular-nums", fill(h.series))} style={{ width: bar.value(h) + "%" }}>
-                {bar.value(h) >= 9 ? bar.value(h) + "%" : null}
+                {bar.value(h) >= 9 && h.series !== "open" ? bar.value(h) + "%" : null}
               </div>
             ))}
           </div>
@@ -421,7 +423,7 @@ function ChartColours() {
           <li key={h.name} className="flex items-center gap-2 text-body">
             <SeriesSwatch series={h.series} />
             <span className="min-w-0 flex-1 truncate">{h.name}</span>
-            <span className="font-mono text-small text-ink-3 tabular-nums">{h.issued}% issued · {h.diluted}% diluted</span>
+            <span className="font-mono text-small text-ink-3 tabular-nums">{h.issued ? h.issued + "%" : "none"} issued · {h.diluted}% diluted</span>
           </li>
         ))}
       </ul>
