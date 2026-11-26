@@ -9,6 +9,7 @@
 //
 //   node tooling/hub-events-stub.mjs serve [--port 38410]
 //   node tooling/hub-events-stub.mjs emit calendar_event.created --person dev-owner --event ev_1 [--uid <uid>]
+//   node tooling/hub-events-stub.mjs emit contact.changed --person dev-owner --contact ct_1
 //   node tooling/hub-events-stub.mjs prune            (retention removes everything: a module behind gets 410)
 //
 // With `serve` running, `HUB_EVENTS_URL=http://127.0.0.1:38410 npm run dev` makes the app follow it (APP_ENV=local
@@ -24,6 +25,10 @@ export const KINDS = {
   'calendar_event.created': ['event', 'uid'],
   'calendar_event.changed': ['event', 'uid'],
   'calendar_event.deleted': ['event', 'uid'],
+  // A write to a person's address book through the hub's routes (TASKS APM20; src/server/hub/records.ts).
+  'contact.created': ['contact', 'uid'],
+  'contact.changed': ['contact', 'uid'],
+  'contact.deleted': ['contact', 'uid'],
 }
 const CURSOR = /^evt_(\d{1,18})$/
 const ID = /^[A-Za-z0-9._:@+-]{1,255}$/
@@ -294,13 +299,13 @@ async function main() {
     console.log(`hub events stub on ${hub.url}${PATH} (HUB_EVENTS_URL=${hub.url}); emit with: node tooling/hub-events-stub.mjs emit calendar_event.created --person dev-owner --event ev_1`)
   } else if (command === 'emit') {
     const kind = positional[1]
-    if (!kind) throw new Error('usage: emit <kind> [--person <hub member id>] [--event <id>] [--uid <id>]')
-    const data = Object.fromEntries(['event', 'uid'].filter((name) => typeof flags[name] === 'string').map((name) => [name, flags[name]]))
+    if (!kind) throw new Error('usage: emit <kind> [--person <hub member id>] [--event <id>] [--contact <id>] [--uid <id>]')
+    const data = Object.fromEntries(['event', 'contact', 'uid'].filter((name) => typeof flags[name] === 'string').map((name) => [name, flags[name]]))
     console.log(JSON.stringify(await post('/_stub/emit', { kind, person: typeof flags.person === 'string' ? flags.person : null, data })))
   } else if (command === 'prune') {
     console.log(JSON.stringify(await post('/_stub/prune', {})))
   } else {
-    throw new Error('usage: node tooling/hub-events-stub.mjs serve [--port 38410] | emit <kind> [--person id] [--event id] [--uid id] | prune')
+    throw new Error('usage: node tooling/hub-events-stub.mjs serve [--port 38410] | emit <kind> [--person id] [--event id] [--contact id] [--uid id] | prune')
   }
 }
 

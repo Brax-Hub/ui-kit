@@ -41,7 +41,7 @@ export interface HubEvent {
   at: string
   /** The hub membership the event is about, when there is one. */
   person: string | null
-  /** Ids, never a record's contents: `event` (and `uid`) for the calendar kinds. */
+  /** Ids, never a record's contents: `event` (and `uid`) for the calendar kinds, `contact` (and `uid`) for the contact kinds. */
   data: Record<string, string>
 }
 
@@ -328,27 +328,48 @@ export interface HubAddress {
   tls?: { key: Buffer | string; cert: Buffer | string; ca: Buffer | string; servername?: string }
 }
 
+/** One request to a route of the hub's module API: the path with its query, the headers and a JSON body, as given. */
+export interface HubCall {
+  method: 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  /** The route's path, each part already encoded: /services/module/people/<person>/calendars. */
+  path: string
+  /** Query parameters; one that is undefined is left out. */
+  query?: Record<string, string | undefined>
+  headers?: Record<string, string>
+  /** Sent as JSON when given. */
+  body?: unknown
+}
+
+/** One request to the hub. Rejects when there is no answer: no connection, a dropped one, or `signal` aborted. */
+export type CallHub = (call: HubCall, signal: AbortSignal) => Promise<HubAnswer>
+
 export interface HubTransport {
   ask: AskHub
-  /** Close the connection kept between two requests. */
+  /** Any route of the module API over the same connections (hub/records.ts calls the person's records with it). */
+  call: CallHub
+  /** Close the connections kept between two requests. */
   close(): void
 }
 
 const MAX_ANSWER_BYTES = 8 * 1024 * 1024
 
-/** The feed over HTTP: one connection, kept between requests, so a module instance cannot have two requests waiting. */
-export function hubTransport(address: HubAddress): HubTransport {
+/**
+ * The hub's module API over HTTP, with the connections kept between requests. `connections` is how many requests may
+ * be open at once: one by default, which is what the feed needs (a module instance cannot have two requests waiting).
+ * A client that calls while the feed waits takes a transport of its own with more.
+ */
+export function hubTransport(address: HubAddress, options: { connections?: number } = {}): HubTransport {
   const base = address.url.replace(/\/+$/, '')
   const secure = base.startsWith('https:')
-  const agent = secure ? new HttpsAgent({ ...address.tls, keepAlive: true, maxSockets: 1 }) : new HttpAgent({ keepAlive: true, maxSockets: 1 })
-  const ask: AskHub = (query, signal) =>
+  const maxSockets = options.connections ?? 1
+  const agent = secure ? new HttpsAgent({ ...address.tls, keepAlive: true, maxSockets }) : new HttpAgent({ keepAlive: true, maxSockets })
+  const call: CallHub = ({ method, path, query, headers, body }, signal) =>
     new Promise((resolve, reject) => {
-      const target = new URL(base + EVENTS_PATH)
-      if (query.after !== undefined) target.searchParams.set('after', query.after)
-      if (query.kinds?.length) target.searchParams.set('kinds', query.kinds.join(','))
-      if (query.wait) target.searchParams.set('wait', String(query.wait))
-      if (query.limit) target.searchParams.set('limit', String(query.limit))
-      const req = (secure ? httpsRequest : httpRequest)(target, { method: 'GET', agent, signal, headers: { accept: 'application/json' } }, (res) => {
+      const target = new URL(base + path)
+      for (const [name, value] of Object.entries(query ?? {})) if (value !== undefined) target.searchParams.set(name, value)
+      const payload = body === undefined ? undefined : Buffer.from(JSON.stringify(body), 'utf8')
+      const sent = { accept: 'application/json', ...(payload ? { 'content-type': 'application/json', 'content-length': String(payload.length) } : {}), ...headers }
+      const req = (secure ? httpsRequest : httpRequest)(target, { method, agent, signal, headers: sent }, (res) => {
         const chunks: Buffer[] = []
         let size = 0
         res.on('data', (chunk: Buffer) => {
@@ -357,19 +378,34 @@ export function hubTransport(address: HubAddress): HubTransport {
           chunks.push(chunk)
         })
         res.on('end', () => {
-          let body: unknown = null
+          let answer: unknown = null
           try {
-            body = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+            answer = JSON.parse(Buffer.concat(chunks).toString('utf8'))
           } catch {
-            body = null
+            answer = null
           }
-          resolve({ status: res.statusCode ?? 0, body })
+          resolve({ status: res.statusCode ?? 0, body: answer })
         })
         res.on('error', reject)
         res.on('close', () => reject(new Error('the connection closed before the answer ended')))
       })
       req.on('error', reject)
+      if (payload) req.write(payload)
       req.end()
     })
-  return { ask, close: () => agent.destroy() }
+  const ask: AskHub = (query, signal) =>
+    call(
+      {
+        method: 'GET',
+        path: EVENTS_PATH,
+        query: {
+          after: query.after,
+          kinds: query.kinds?.length ? query.kinds.join(',') : undefined,
+          wait: query.wait ? String(query.wait) : undefined,
+          limit: query.limit ? String(query.limit) : undefined,
+        },
+      },
+      signal,
+    )
+  return { ask, call, close: () => agent.destroy() }
 }

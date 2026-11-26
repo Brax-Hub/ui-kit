@@ -3,7 +3,8 @@
 #           runs with one failing fixture per rule, the business-app kit on the UI kit), the typecheck of the parts
 #           and the build of the sample pages
 #   kit     the module kit's sample app, kit/example: its gate (typecheck, security scan, UI check, RLS test on
-#           PGlite, build) and its unit tests (scanner fixtures, token verifier, kit drift)
+#           PGlite, build) and its unit tests (scanner fixtures, token verifier, the two hub clients against their
+#           stand-in hubs: the event feed, and a person's calendar and address book; kit drift)
 #   by-tag  the UI kit installs the way an app gets it: from git, at this commit, with no token, no credential helper
 #           and no SSH key (the repository is public); then from the lock file alone, under both ways npm writes the
 #           address there
