@@ -198,7 +198,8 @@ screens hold:
 - a value of the kit set again (`--accent: …`), a `@theme`, a `@font-face`, or Tailwind imported past the kit's theme;
 - a stylesheet or a font from another origin;
 - a parts folder (`src/components/ui/`, `components.json`), a component declared under the name of one of the kit's
-  parts, or an import of what parts are made of (Radix, cmdk, sonner, vaul, react-resizable-panels, tailwind-merge);
+  parts, or an import of what parts are made of (Radix, cmdk, sonner, vaul, react-resizable-panels, react-day-picker,
+  tailwind-merge);
 - a dependency the kit brings (Tailwind, Radix, a font package);
 
 or when the app's stylesheet does not import the kit's, or its page does not link the hub's three stylesheets. The
@@ -220,6 +221,7 @@ A release that changes `values.css` is followed by the hub server taking the new
 | --- | --- | --- |
 | 0.1.0 | `ui-v0.1.0` | The values, the theme, 33 parts. Not installable as a package: the package file was in `ui/`. |
 | 0.2.0 | `ui-v0.2.0` | The package at the repository's root; the app frame (`parts/app-frame.tsx`); `vite.js`, `lib/hub.ts`, `check/`. `values.css` is unchanged, so the hub server's copy stays right. |
+| 0.3.0 | `ui-v0.3.0` (not tagged; the owner's to make) | What Entity Hub lacked (TASKS FE04): the states `info` and `verified` wherever a part takes a tone; a rail that collapses to icons (`Rail collapsed`, `RailToggle`, `RailGroup`); the danger count (`CountBadge tone`, `RailCount tone`); six colours for a chart's series (`--series-1` to `--series-6`, `parts/series.tsx`); a calendar grid and a date picker (`parts/calendar.tsx`, `parts/date-picker.tsx`, `lib/dates.ts`). **`values.css` changed** (new variables only; none removed or given another value), so the hub server takes this tag for its copy. Two things an app on 0.2.0 sees change: `Alert tone="info"` is the info tint (it was the neutral band), and `Badge variant="info"` is the info state (it was the accent). |
 
 ## Light and dark, the accent, the faces
 
@@ -258,6 +260,11 @@ shadcn's names should know:
   `link`, `destructive`; `default` and `outline` are accepted as aliases. `IconButton` is the 40px icon button.
 - **Badge** is the status label (tint and dot, with the word); `Tag` the outlined label; `CountBadge` the count on an
   icon button. `Toggle` is the chip, `ToggleGroup` the segmented control, `Tabs` the text-only tabs.
+- **Tones.** A part that takes a tone takes `ok`, `warn`, `risk`, `info`, `verified` and `accent` (`Badge`,
+  `StatTile`, `Progress`, `DayItem`; `Alert` all but `verified`). `info` is open or under way and asks for nothing
+  yet; `verified` is checked and confirmed by a person. `success`, `warning` and `danger` are accepted for `ok`,
+  `warn` and `risk`. `CountBadge` takes `accent` (its default), `neutral` (the quiet count beside a title), `risk`
+  (the danger count, for what is overdue) and `info`.
 - **Alert** is the flat notice (no icon, no border); `EmptyState`, `Banner` and `Link` sit beside it.
 - **Toast** is the one bar at the bottom left on Radix Toast with a small store (`toast.show`, `Toaster`), which the
   hub's CSP allows; `SonnerToaster` gives sonner the same look for an app that already uses it.
@@ -266,7 +273,38 @@ shadcn's names should know:
 - **App frame** (`AppFrame`, `Rail`, `RailLabel`, `RailItem`, `RailCount`, `AppMain`, `Toolbar`; added with FE04) is an
   app's frame under the hub's header: the 240px rail of its own navigation and the main column beside it. `RailItem`
   takes `asChild` for a router's link and shows the page in front (`aria-current="page"`) in the accent tint.
-- The parts carry no text of their own except "Not set" and the close button's label, which every part takes as a prop.
+- **A rail that collapses** (0.3.0). `<Rail collapsed={collapsed} onCollapsedChange={setCollapsed}>` draws the rail as a
+  52px column of icons; the rail remembers nothing, so the app holds `collapsed` (and decides whether to keep it, and
+  which key flips it). `<RailToggle label="Collapse the menu" />` inside it is the button; `RailGroup` is a group of
+  items under a label that opens and closes it; `<RailCount tone="danger">` is the red count, a dot when collapsed.
+  Collapsed, an item shows its icon alone, keeps its words for a screen reader and shows them in a tooltip, so each
+  item of such a rail has an icon, first.
+- **Chart colours** (0.3.0). Six colours for the parts of a chart that are told apart by name, `bg-series-1` to
+  `bg-series-6` (`fill-`, `stroke-`; `seriesBg[i]`, `seriesFill[i]`, `seriesStroke[i]` from the parts), with
+  `text-on-series` for a number printed inside a part and `SeriesSwatch` for a legend's key. They are computed from
+  the hub's accent (`values.css`, "the colours of a chart's series"): series 1 is its hue, the others that hue turned
+  a sixth of the circle at a time, neighbours alternating between a lighter and a darker step. Use them in order,
+  by what a part is and not by its rank; what is left after six is `bg-line-strong`, named "others". A chart of
+  one series is grey bars with `bg-accent` for the one in front, as the prototype's are. The kit holds no chart
+  library and draws no chart.
+- **Calendar** (0.3.0). `CalendarGrid` is a month of days: `size="mini"` is the small month (30px days), `size="month"`
+  the month view, whose cells show under the day's number whatever `renderDay` returns (`DayItem` lines with a dot
+  in a tone, `DayMore`). `Calendar` puts the month's name and the arrows over it. A date is a string, `"2026-11-26"`,
+  a month `"2026-11"`; `selected` and `onSelect` are the day chosen, `month` with `onMonthChange` lets the app hold
+  the month (else the grid does), `today`, `min`, `max`, `isDisabled`, `weekStartsOn` (Monday unless told),
+  `weekNumbers`, `outsideDays`, `isMarked` and `locale` (month and weekday names come from the browser's `Intl`;
+  `"en-GB"` unless told) do what they say. One day is in the tab order; the arrows move by a day and a week, Home
+  and End to the ends of the week, Page Up and Page Down by a month and with Shift by a year, Enter or Space chooses.
+  `@brax-hub/ui/dates` (`lib/dates.ts`) has the arithmetic an app needs to drive it: `todayIso`, `shiftMonth`,
+  `addDays`, `monthWeeks`.
+- **DatePicker** (0.3.0) is a date field: `<DatePicker value={date} onValueChange={setDate} />`, the value the string a
+  date input gives (`"2026-11-26"`, `""` for none), `name` to post it with a form, `min` and `max`. The date is
+  typed year first (slashes, dots or no separator are read too) or picked from the small month its button opens.
+- What 0.3.0 added, as it looks in light and dark: `docs/fe04-tones-light.png` and `-dark.png` (the states and the
+  counts), `docs/fe04-rail-*.png` (the rail open and as icons), `docs/fe04-series-*.png` (the chart colours, and
+  `fe04-series-blue-light.png` under a blue accent), `docs/fe04-calendar-*.png` and `docs/fe04-date-picker-*.png`.
+- The parts carry no text of their own except "Not set", the close button's label, and the labels of the calendar's
+  arrows and the date field's button, which every part takes as a prop.
 
 ## Browser support
 
@@ -300,9 +338,13 @@ screenshots in `docs/` were taken there and on `parts.html`.
 
 `npm test` runs Node's test runner over `test/contrast.test.mjs` (the rules under both ways a browser maps an
 out-of-gamut colour, for `test/accents.json` and a sweep of every hue; it prints the table for the pull request),
+`test/series.test.mjs` (the six series colours for the same accents and sweep, in both themes: 3:1 on each surface,
+4.5:1 for a number inside, neighbours told apart by a reader with full colour vision and by a red-green colour-blind
+one), `test/dates.test.mjs` (the weeks of a month, where each key moves the day, what a typed date is read as),
 `test/no-literals.test.mjs` (no hex, colour function, palette class, Tailwind scale name, font name, radius or
 px/rem/em length outside `values.css`, in the theme, the parts and the sample pages alike), `test/parts.test.mjs`
-(every part the four apps import exists and is exported, and every section of the parts page renders to markup),
+(every part the four apps import exists and is exported, every section of the parts page renders to markup, and the
+calendar grid, the date field and the collapsed rail carry the roles, names and states they promise),
 `test/app-check.test.mjs` (the check an app runs refuses what it says it refuses: a small app with one thing put
 wrong per rule, and a clean one that must pass) and `test/kit-on-ui.test.mjs` (TASKS FE04: the module kit holds no
 copy of a part and no colour of its own; the sample app passes the app's check; an app made by `kit/init.mjs` names

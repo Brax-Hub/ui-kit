@@ -5,7 +5,7 @@ import { monthOf, readDate, type IsoDate, type Weekday } from "../lib/dates.ts";
 import { IconButton } from "./button.tsx";
 import { Calendar } from "./calendar.tsx";
 import { fieldClass } from "./input.tsx";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover.tsx";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "./popover.tsx";
 
 /* A date field (0.3.0; Entity Hub has some forty, each a browser's own date input until now). The kit's field
    (.in, hub.css 120-125) with a small icon button at its right end that opens the small month in a popover (the
@@ -66,6 +66,7 @@ export function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
       <div className={cn("relative flex w-full", className)}>
         <input
           type="text"
@@ -91,9 +92,10 @@ export function DatePicker({
           <IconButton size="sm" aria-label={calendarLabel} disabled={disabled} className="absolute top-1 right-1"><CalendarDays aria-hidden /></IconButton>
         </PopoverTrigger>
       </div>
+      </PopoverAnchor>
       <PopoverContent
         ref={content}
-        align="end"
+        align="start"
         aria-label={calendarLabel}
         className="w-auto p-3"
         onOpenAutoFocus={(event) => { event.preventDefault(); content.current?.querySelector<HTMLElement>('[data-day][tabindex="0"]')?.focus(); }}
