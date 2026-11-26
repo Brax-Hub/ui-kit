@@ -49,7 +49,7 @@ the scaffold that is:
 | `src/styles.css` | one line, `@import "@brax-hub/ui/ui.css"` |
 | `src/routes/__root.tsx` | the app's stylesheet, then `hubStylesheetLinks`: the hub's values, its theme (the accent its owner picked) and its two licensed faces; `data-theme` from the `hub.theme` message; the frame (`AppFrame`, `Rail`, `AppMain`) |
 | `src/routes/*.tsx` | screens built from the parts (`Page`, `PageHeader`, `Section`, `Table`, `Toolbar`, `Input`, `Select`, `Button`, `Badge`, `Alert`) and the theme's classes |
-| `Dockerfile`, `.github/workflows/*.yml` | git in the build stage, and the token that may read the UI kit's repository (`UI_KIT_TOKEN`) |
+| `Dockerfile`, `.github/workflows/*.yml` | A plain `npm ci`: the UI kit's repository is public since 26 November 2026, so CI and the image build need no token, no secret and no SSH key (`docker build .`) |
 
 `npm run ui-check` (the UI kit's `brax-ui-check`) refuses a colour, a face, a radius or a length written in a screen, a
 copy of a part, and a page that does not link the hub's theme. A part an app needs and the UI kit lacks is added to
