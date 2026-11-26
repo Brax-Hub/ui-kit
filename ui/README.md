@@ -29,7 +29,7 @@ and no SSH key, on a PC, in CI or in an image build.
 
 ```json
 "dependencies": {
-  "@brax-hub/ui": "git+https://github.com/Brax-Hub/ui-kit.git#ui-v0.2.0"
+  "@brax-hub/ui": "git+https://github.com/Brax-Hub/ui-kit.git#ui-v0.3.0"
 }
 ```
 
@@ -221,7 +221,7 @@ A release that changes `values.css` is followed by the hub server taking the new
 | --- | --- | --- |
 | 0.1.0 | `ui-v0.1.0` | The values, the theme, 33 parts. Not installable as a package: the package file was in `ui/`. |
 | 0.2.0 | `ui-v0.2.0` | The package at the repository's root; the app frame (`parts/app-frame.tsx`); `vite.js`, `lib/hub.ts`, `check/`. `values.css` is unchanged, so the hub server's copy stays right. |
-| 0.3.0 | `ui-v0.3.0` (not tagged; the owner's to make) | What Entity Hub lacked (TASKS FE04): the states `info` and `verified` wherever a part takes a tone; a rail that collapses to icons (`Rail collapsed`, `RailToggle`, `RailGroup`); the danger count (`CountBadge tone`, `RailCount tone`); six colours for a chart's series (`--series-1` to `--series-6`, `parts/series.tsx`); a calendar grid and a date picker (`parts/calendar.tsx`, `parts/date-picker.tsx`, `lib/dates.ts`). **`values.css` changed** (new variables only; none removed or given another value), so the hub server takes this tag for its copy. Two things an app on 0.2.0 sees change: `Alert tone="info"` is the info tint (it was the neutral band), and `Badge variant="info"` is the info state (it was the accent). |
+| 0.3.0 | `ui-v0.3.0` | What Entity Hub lacked (TASKS FE04): the states `info` and `verified` wherever a part takes a tone; a rail that collapses to icons (`Rail collapsed`, `RailToggle`, `RailGroup`); the danger count (`CountBadge tone`, `RailCount tone`); six colours for a chart's series (`--series-1` to `--series-6`, `parts/series.tsx`); a calendar grid and a date picker (`parts/calendar.tsx`, `parts/date-picker.tsx`, `lib/dates.ts`). **`values.css` changed** (new variables only; none removed or given another value), so the hub server takes this tag for its copy. Two things an app on 0.2.0 sees change: `Alert tone="info"` is the info tint (it was the neutral band), and `Badge variant="info"` is the info state (it was the accent). |
 
 ## Light and dark, the accent, the faces
 
