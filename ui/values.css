@@ -50,6 +50,19 @@
   --ok-bg: rgba(34, 197, 94, 0.14);              /* hub.css 29 */
   --warn-bg: rgba(244, 183, 64, 0.18);           /* hub.css 30 */
   --risk-bg: rgba(239, 68, 68, 0.12);            /* hub.css 31 */
+  /* Two more states, added with FE04 for Entity Hub (34 uses there). `info` is something open or under way that asks
+     for nothing yet (open, queued, upcoming); the design of record has it on the status pages as the maintenance blue
+     (status.css 8 · 19, and its tints 14 · 21). `verified` is something checked and confirmed by a person (a
+     verified document, an owner); the prototype has no such colour, so the violet is Entity Hub's own (departure 6).
+     As a mark each reaches 3:1 on the three surfaces of its theme (test/contrast.test.mjs, which prints the numbers). */
+  --info: light-dark(#3F6FC0, #6A95E6);          /* status.css 8 st-maint · 19 */
+  --verified: light-dark(#6D28D9, #A78BFA);      /* Entity Hub's app.css, "verified" (departure 6) */
+  --info-bg: light-dark(rgba(63, 111, 192, 0.12), rgba(106, 149, 230, 0.16));     /* status.css 14 · 21 */
+  --verified-bg: light-dark(rgba(139, 92, 246, 0.14), rgba(167, 139, 250, 0.16)); /* Entity Hub's app.css (departure 6) */
+  /* The text on a state colour used as a fill (the danger count): white on the light theme's darker states, the dark
+     surface on the dark theme's lighter ones. 4.5:1 or more on --risk, --info and --verified in both themes; not for
+     --ok or --warn, which are too light for white on paper. */
+  --on-tone: light-dark(#FFFFFF, #0B0D12);       /* hub.css 11 paper · 41 os-bg */
 
   /* ---- the secondary button's own surfaces (hub.css 100-103) ---- */
   --button-2: light-dark(#FFFFFF, #22262F);      /* hub.css 100 var(--bg) · 102 */
@@ -129,6 +142,53 @@
     calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-control-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1))
     calc(var(--ink-y) + (1 - var(--ink-y)) * clamp(0, (var(--on-accent-control-flip-y) - (0.2126 * r + 0.7152 * g + 0.0722 * b)) * 1000000, 1)));
 
+  /* ---- the colours of a chart's series (added with FE04; departure 7) ----
+     Six, in a fixed order, for the parts of a chart that are told apart by name: series 1 first, then 2, and so on,
+     never picked by value and never cycled; what is left over after six takes --line-strong ("others"). The
+     prototype's own charts use the accent for the one value in front and greys for the rest (health.css 2), and that
+     stays the rule for a chart of one series: its bars are --line-strong and the one in front is --accent.
+
+     Every series follows the hub's accent. Series 1 is the accent's hue; the others are that hue turned by a sixth
+     of the circle at a time, so no hub's accent can land on one of them. Neighbours alternate between two
+     lightnesses, a lighter and a darker, because lightness is what a red-green colour-blind reader still sees.
+     Chroma is low on purpose (the prototype: "the accent stays the only bright mark"), and series 1 keeps the
+     accent's own chroma only up to --series-chroma-max: a strong red would otherwise darken onto its neighbour for
+     a protanope. An accent with no hue (black, white, a grey) counts as hue 0.
+
+     Proven in test/series.test.mjs for the seven test accents and every sRGB hue, in both themes and under both
+     ways a browser maps an out-of-gamut colour: each series is 3:1 or more on the three surfaces of its theme,
+     --on-series is 4.5:1 or more on each, and neighbours in the order are at least 15 apart (OKLab distance x 100)
+     and at least 8 apart as a protanope and as a deuteranope see them (Machado, Oliveira and Fernandes 2009). */
+  --series-l-light-a: 0.55;      /* light theme: the lightness of series 1, 3 and 5 */
+  --series-l-light-b: 0.36;      /* light theme: series 2, 4 and 6 */
+  --series-l-dark-a: 0.63;       /* dark theme: series 1, 3 and 5 */
+  --series-l-dark-b: 0.82;       /* dark theme: series 2, 4 and 6 */
+  --series-chroma: 0.10;         /* series 2 to 6 */
+  --series-chroma-max: 0.14;     /* series 1: the accent's own chroma at that lightness, up to this */
+  --series-1-light: oklch(from var(--accent) var(--series-l-light-a)
+    min(var(--series-chroma-max), calc(c * min(var(--series-l-light-a) / max(l, 0.001), (1 - var(--series-l-light-a)) / max(1 - l, 0.001))))
+    calc(h * clamp(0, c * 1000, 1)));
+  --series-2-light: oklch(from var(--accent) var(--series-l-light-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 180));
+  --series-3-light: oklch(from var(--accent) var(--series-l-light-a) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 240));
+  --series-4-light: oklch(from var(--accent) var(--series-l-light-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 60));
+  --series-5-light: oklch(from var(--accent) var(--series-l-light-a) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 120));
+  --series-6-light: oklch(from var(--accent) var(--series-l-light-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 300));
+  --series-1-dark: oklch(from var(--accent) var(--series-l-dark-a)
+    min(var(--series-chroma-max), calc(c * min(var(--series-l-dark-a) / max(l, 0.001), (1 - var(--series-l-dark-a)) / max(1 - l, 0.001))))
+    calc(h * clamp(0, c * 1000, 1)));
+  --series-2-dark: oklch(from var(--accent) var(--series-l-dark-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 180));
+  --series-3-dark: oklch(from var(--accent) var(--series-l-dark-a) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 240));
+  --series-4-dark: oklch(from var(--accent) var(--series-l-dark-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 60));
+  --series-5-dark: oklch(from var(--accent) var(--series-l-dark-a) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 120));
+  --series-6-dark: oklch(from var(--accent) var(--series-l-dark-b) var(--series-chroma) calc(h * clamp(0, c * 1000, 1) + 300));
+  --series-1: light-dark(var(--series-1-light), var(--series-1-dark));
+  --series-2: light-dark(var(--series-2-light), var(--series-2-dark));
+  --series-3: light-dark(var(--series-3-light), var(--series-3-dark));
+  --series-4: light-dark(var(--series-4-light), var(--series-4-dark));
+  --series-5: light-dark(var(--series-5-light), var(--series-5-dark));
+  --series-6: light-dark(var(--series-6-light), var(--series-6-dark));
+  --on-series: light-dark(#FFFFFF, #0B0D12);     /* a number printed inside a part of a chart: hub.css 11 paper · 41 os-bg */
+
   /* ---- faces (ADR-039 D5; hub.css 9-10) ---- */
   --face-text: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; /* ADR-039 D5: Inter for reading text, forms and tables (departure 1) */
   --face-mono: "LFT Etica Mono", ui-monospace, Menlo, Consolas, monospace;  /* hub.css 10: codes, numbers, small labels */
@@ -178,6 +238,12 @@
   --dot-sm: 6px;            /* admin.css 43, store.css 47: the dot inside a status label */
   --header: 68px;           /* hub.css 149 */
   --rail: 240px;            /* hub.css 169 */
+  --rail-collapsed: 52px;   /* hub.css 250: the width of the prototype's column of icons (.srail), for a rail drawn as icons */
+  --day: 30px;              /* calendar.css 21: a day of the small month */
+  --day-head: 24px;         /* calendar.css 20: the row of weekday names over it */
+  --day-number: 26px;       /* calendar.css 110: the day's number in a cell of the month view */
+  --day-item: 22px;         /* calendar.css 114: one line of what falls on a day */
+  --week-number: 24px;      /* calendar.css 19: the column of week numbers */
   --sheet: 440px;           /* hub.css 212 */
   --sheet-wide: 560px;      /* hub.css 213 */
   --menu-min: 220px;        /* hub.css 202 */
@@ -227,4 +293,12 @@
    4. --pop-shadow is one declaration for both themes with light-dark() colours: the light shadow is the prototype's
       (0 12px 32px); the dark one keeps its inset highlight but takes the same offsets (the prototype's are 10px 30px).
    5. Not carried: --page #FFFFFF (hub.css 38, the viewer's printed page) and the viewer's own fixed dark colours
-      (hub.css 254-261), which belong to one app, not to the kit. */
+      (hub.css 254-261), which belong to one app, not to the kit.
+   6. --verified and its tint are not in the prototype. Entity Hub marks what a person has checked (a verified
+      document, the owner's role) in violet, 24 uses; the values are its own, read on 26 November 2026. A question for
+      the owner: keep the violet, or fold "verified" into --ok. --info is the prototype's (its status pages), not new.
+   7. The series colours are computed, not written. The prototype has no set of colours for a chart of several named
+      parts: its charts are one accent and greys (health.css 2), its sleep stages tints of the accent (health.css
+      135-137), and its calendar's 24 colours (Calendar.dc.html) are a person's own choice per calendar, which is
+      data. Entity Hub's ownership chart needs six parts told apart; six fixed colours would sit beside any accent a
+      hub's owner can pick, and one of them would sooner or later be that accent. So the six follow the accent. */

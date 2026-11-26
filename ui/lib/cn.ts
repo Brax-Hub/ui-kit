@@ -7,7 +7,7 @@ import { extendTailwindMerge } from "tailwind-merge";
 const sizes = [
   "control", "control-sm", "control-mid", "control-tall", "row", "row-table", "header", "rail", "sheet", "sheet-wide", "menu-min", "toast",
   "avatar-lg", "switch-w", "switch-h", "knob", "dot", "dot-sm", "icon", "icon-sm", "icon-lg", "tick-w", "tick-h", "meter", "hairline", "skeleton",
-  "kv-label", "status-label",
+  "kv-label", "status-label", "rail-collapsed", "day", "day-head", "day-number", "day-item", "week-number",
 ];
 const twMerge = extendTailwindMerge({
   extend: {

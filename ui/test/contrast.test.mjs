@@ -47,6 +47,25 @@ test("the default accent's hover and pressed shades land on the prototype's (hub
   assert.ok(near(d.press, "#B83A21", 0.01), `press ${d.press} is not near #B83A21`);
 });
 
+/* FE04, the two states added for Entity Hub (values.css, "states") and the text on a state used as a fill. */
+test("info and verified read as marks on every surface, and --on-tone reads on the filled states", () => {
+  const out = [];
+  for (const theme of ["light", "dark"]) {
+    const surfaces = [k.bg[theme], k.bg2[theme], k.bg3[theme]];
+    for (const tone of ["info", "verified"]) {
+      const worst = Math.min(...surfaces.map((s) => contrastHex(k[tone][theme], s)));
+      assert.ok(worst >= MIN_CONTROL, `--${tone} as a mark on the ${theme} surfaces: ${r2(worst)}`);
+      out.push(`--${tone} ${theme} ${k[tone][theme]}: ${surfaces.map((s) => r2(contrastHex(k[tone][theme], s))).join(" / ")} on bg / bg-2 / bg-3`);
+    }
+    for (const tone of ["risk", "info", "verified"]) {
+      const on = contrastHex(k.onTone[theme], k[tone][theme]);
+      assert.ok(on >= MIN, `--on-tone on --${tone}, ${theme}: ${r2(on)}`);
+      out.push(`--on-tone on --${tone} ${theme}: ${r2(on)}`);
+    }
+  }
+  console.log(`\nThe two added states and the text on a filled state:\n${out.join("\n")}\n`);
+});
+
 const rows = [];
 for (const { hex, name } of accents) {
   for (const mapping of ["reduce", "clip"]) {
