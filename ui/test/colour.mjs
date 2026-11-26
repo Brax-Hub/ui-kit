@@ -96,7 +96,48 @@ export function readConstants(css) {
     inkY: num("ink-y"), controlFlipY: num("on-accent-control-flip-y"), tintAlpha: num("accent-tint-alpha"), ringAlpha: num("accent-ring-alpha"),
     accent: accent[1].toUpperCase(),
     bg: pair("bg"), bg2: pair("bg-2"), bg3: pair("bg-3"), ink1: pair("ink-1"),
+    info: pair("info"), verified: pair("verified"), risk: pair("risk"), onTone: pair("on-tone"), onSeries: pair("on-series"),
+    series: {
+      light: [num("series-l-light-a"), num("series-l-light-b")], dark: [num("series-l-dark-a"), num("series-l-dark-b")],
+      chroma: num("series-chroma"), chromaMax: num("series-chroma-max"),
+      // the turn of the hue each series is written with, read from the light set: [0, 180, 240, 60, 120, 300]
+      turns: [1, 2, 3, 4, 5, 6].map((n) => {
+        const line = css.match(new RegExp(`--series-${n}-light:[^;]*;`));
+        if (!line) throw new Error(`values.css has no --series-${n}-light`);
+        const turn = line[0].match(/\+\s*(\d+)\s*\)\s*\)\s*;$/);
+        return turn ? Number(turn[1]) : 0;
+      }),
+    },
   };
+}
+
+/* The six series colours values.css derives from one accent, as linear sRGB, for a theme ("light" or "dark") under
+   the given gamut mapping. Mirrors --series-N-light and --series-N-dark: series 1 is the accent's hue at the
+   theme's first lightness with the accent's chroma scaled to it and capped; the others are the hue turned, at the
+   two lightnesses in turn, at the fixed chroma. An accent with no chroma counts as hue 0 (h * clamp(0, c * 1000, 1)). */
+export function deriveSeries(accentHex, k, theme, mapping = "reduce") {
+  const [L, C, h0] = hexToOklch(accentHex);
+  const h = h0 * Math.max(0, Math.min(1, C * 1000));
+  const [a, b] = k.series[theme];
+  return k.series.turns.map((turn, i) => {
+    const l = i % 2 === 0 ? a : b;
+    const c = i === 0 ? Math.min(k.series.chromaMax, C * Math.min(l / Math.max(L, 0.001), (1 - l) / Math.max(1 - L, 0.001))) : k.series.chroma;
+    // as a screen shows it: 8 bits a channel
+    return hexToRgb(rgbToHex(oklchToLin([l, c, (h + turn) % 360], mapping).map(gam))).map(lin);
+  });
+}
+
+/* How a colour looks to a protanope or a deuteranope: Machado, Oliveira and Fernandes (2009), severity 1.0, applied
+   in linear sRGB. The distances the series test asks for are calibrated to this model. */
+const machado = {
+  protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
+  deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.01182, 0.04294, 0.968881]],
+};
+export const seenBy = (kind, linRgb) => clip01(machado[kind].map((row) => row[0] * linRgb[0] + row[1] * linRgb[1] + row[2] * linRgb[2]));
+/* The distance between two colours in OKLab, times 100. */
+export function distance(linA, linB) {
+  const a = linToOklab(linA), b = linToOklab(linB);
+  return 100 * Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }
 
 /* The shades values.css derives from one accent, as hex, under the given gamut mapping. Each line names the CSS it

@@ -14,7 +14,7 @@
    a stylesheet from elsewhere         a font or stylesheet address on another origin
    a parts folder                      src/components/ui/, or shadcn's components.json
    a part under the kit's name         a component declared with the name of a part the kit exports
-   a part's makings                    an import of Radix, cmdk, sonner, vaul, react-resizable-panels or tailwind-merge:
+   a part's makings                    an import of Radix, cmdk, sonner, vaul, react-resizable-panels, react-day-picker or tailwind-merge:
                                        a part that is missing is added to ui/parts, not built in the app
    its own copy of what the kit brings a dependency on Tailwind, Radix, a font package and the like in package.json
 
@@ -32,10 +32,13 @@ const kit = fileURLToPath(new URL("..", import.meta.url));
 const screenExt = new Set([".css", ".html", ".js", ".jsx", ".mjs", ".ts", ".tsx"]);
 const skipDirs = new Set(["node_modules", "dist", ".data", ".tanstack", ".nitro", ".output"]);
 
-/* The makings of a part: the libraries the kit's parts wrap. An app that reaches for one is building a part. */
-const makings = /^(radix-ui|@radix-ui\/.+|cmdk|sonner|vaul|react-resizable-panels|tailwind-merge)$/;
+/* The makings of a part: the libraries the kit's parts wrap, and the one shadcn's calendar and date picker are made
+   of (react-day-picker), since the kit has its own (parts/calendar.tsx, parts/date-picker.tsx; 0.3.0). An app that
+   reaches for one is building a part. A chart library is not on the list: the kit has none, and an app that draws
+   charts brings its own and takes the colours from the kit's series values. */
+const makings = /^(radix-ui|@radix-ui\/.+|cmdk|sonner|vaul|react-resizable-panels|tailwind-merge|react-day-picker)$/;
 /* What the kit brings, so an app that names it too can end up on another version, or with a face of its own. */
-const brought = /^(tailwindcss|@tailwindcss\/.+|tailwindcss-animate|tw-animate-css|tailwind-merge|radix-ui|@radix-ui\/.+|cmdk|sonner|vaul|react-resizable-panels|@fontsource\/.+|@fontsource-variable\/.+|shadcn|shadcn-ui)$/;
+const brought = /^(tailwindcss|@tailwindcss\/.+|tailwindcss-animate|tw-animate-css|tailwind-merge|radix-ui|@radix-ui\/.+|cmdk|sonner|vaul|react-resizable-panels|react-day-picker|@fontsource\/.+|@fontsource-variable\/.+|shadcn|shadcn-ui)$/;
 
 /** The names of the parts the kit exports (Button, Dialog, Table …), read from the kit's own files. */
 export function partNames() {

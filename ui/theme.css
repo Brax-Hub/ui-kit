@@ -43,6 +43,20 @@
   --color-ok-bg: var(--ok-bg);
   --color-warn-bg: var(--warn-bg);
   --color-risk-bg: var(--risk-bg);
+  --color-info: var(--info);
+  --color-verified: var(--verified);
+  --color-info-bg: var(--info-bg);
+  --color-verified-bg: var(--verified-bg);
+  --color-on-tone: var(--on-tone);
+  /* a chart's series: bg-series-1 … bg-series-6, fill-series-1, stroke-series-1, text-on-series */
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-5: var(--series-5);
+  --color-series-6: var(--series-6);
+  --color-on-series: var(--on-series);
+  --background-image-series-open: var(--series-open);   /* bg-series-open: the hatched part that belongs to nobody yet */
   --color-button-2: var(--button-2);
   --color-button-2-hover: var(--button-2-hover);
   --color-button-2-hover-text: var(--button-2-hover-text);
@@ -111,6 +125,12 @@
   --spacing-dot-sm: var(--dot-sm);
   --spacing-header: var(--header);
   --spacing-rail: var(--rail);
+  --spacing-rail-collapsed: var(--rail-collapsed);
+  --spacing-day: var(--day);
+  --spacing-day-head: var(--day-head);
+  --spacing-day-number: var(--day-number);
+  --spacing-day-item: var(--day-item);
+  --spacing-week-number: var(--week-number);
   --spacing-sheet: var(--sheet);
   --spacing-sheet-wide: var(--sheet-wide);
   --spacing-menu-min: var(--menu-min);

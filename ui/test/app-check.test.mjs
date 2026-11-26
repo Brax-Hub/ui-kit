@@ -58,6 +58,15 @@ const wrong = [
   ["a part under the kit's name, as a constant", { "src/components/items/table.tsx": "const Table = () => <table />;\nexport default Table;\n" }, /a part declared under the UI kit's name, "Table"/],
   ["the makings of a part", { "src/components/items/menu.tsx": 'import { DropdownMenu } from "radix-ui";\nexport const ItemMenu = DropdownMenu.Root;\n' }, /menu\.tsx:1: the makings of a part, which belongs in the UI kit's parts, "radix-ui"/],
   ["the makings of a part, an older Radix package", { "src/components/items/tip.tsx": 'import * as Tip from "@radix-ui/react-tooltip";\nexport const ItemTip = Tip.Root;\n' }, /the makings of a part.*"@radix-ui\/react-tooltip"/],
+  ["a calendar grid under the kit's name", { "src/components/filings/calendar-grid.tsx": 'export function CalendarGrid({ month }: { month: string }) {\n  return <table data-month={month} />;\n}\n' }, /calendar-grid\.tsx:1: a part declared under the UI kit's name, "CalendarGrid"/],
+  ["a date picker under the kit's name", { "src/components/records/date-picker.tsx": "export const DatePicker = () => <input />;\n" }, /a part declared under the UI kit's name, "DatePicker"/],
+  ["a rail toggle under the kit's name", { "src/components/shell/sidebar.tsx": 'function RailToggle() {\n  return <button type="button" />;\n}\nexport { RailToggle };\n' }, /sidebar\.tsx:1: a part declared under the UI kit's name, "RailToggle"/],
+  ["a count badge under the kit's name", { "src/components/shell/count.tsx": 'import { cn } from "@brax-hub/ui/cn";\nconst CountBadge = ({ danger }: { danger?: boolean }) => <span className={cn("font-mono", danger && "text-risk")} />;\nexport default CountBadge;\n' }, /count\.tsx:2: a part declared under the UI kit's name, "CountBadge"/],
+  ["the makings of a calendar", { "src/components/filings/month.tsx": 'import { DayPicker } from "react-day-picker";\nexport const Month = DayPicker;\n' }, /month\.tsx:1: the makings of a part, which belongs in the UI kit's parts, "react-day-picker"/],
+  ["a calendar library as the app's own dependency", { "package.json": JSON.stringify({ dependencies: { "@brax-hub/ui": "x", "react-day-picker": "^9.0.0" } }, null, 2) }, /package\.json:\d+: a dependency the UI kit brings, "react-day-picker"/],
+  ["a series colour set again", { "src/styles.css": '@import "@brax-hub/ui/ui.css";\n:root { --series-1: var(--ink-1); }\n' }, /src\/styles\.css:2: a value of the UI kit set again, "--series-1"/],
+  ["a state colour set again", { "src/styles.css": '@import "@brax-hub/ui/ui.css";\n.records { --info: var(--ok); }\n' }, /src\/styles\.css:2: a value of the UI kit set again, "--info"/],
+  ["a chart colour of the app's own", { "src/styles.css": '@import "@brax-hub/ui/ui.css";\n:root { --chart-1: #2a78d6; }\n' }, /src\/styles\.css:2: a hex colour, "#2a78d6"/],
   ["a class merger of the app's own", { "src/lib/utils.ts": 'import { twMerge } from "tailwind-merge";\nexport const merge = twMerge;\n' }, /the makings of a part.*"tailwind-merge"/],
   ["Tailwind as the app's own dependency", { "package.json": JSON.stringify({ dependencies: { "@brax-hub/ui": "x" }, devDependencies: { tailwindcss: "^4.3.4" } }, null, 2) }, /package\.json:\d+: a dependency the UI kit brings, "tailwindcss"/],
   ["a font package", { "package.json": JSON.stringify({ dependencies: { "@brax-hub/ui": "x", "@fontsource-variable/jetbrains-mono": "^5.3.0" } }, null, 2) }, /a dependency the UI kit brings, "@fontsource-variable\/jetbrains-mono"/],
@@ -80,7 +89,10 @@ test("a comment may name a colour or a part; only code counts", () => {
 test("the names the check reads from the kit are the kit's", () => {
   const parts = partNames(), values = valueNames();
   for (const name of ["Button", "Dialog", "Table", "Rail", "AppFrame", "Badge", "Select"]) assert.ok(parts.has(name), `${name} is not read as a part`);
+  // the parts and values of 0.3.0 (TASKS FE04, what Entity Hub lacked): an app's own copy of one is refused like any other
+  for (const name of ["CalendarGrid", "Calendar", "DayItem", "DayMore", "DatePicker", "RailToggle", "RailGroup", "RailCount", "CountBadge", "SeriesSwatch"]) assert.ok(parts.has(name), `${name} is not read as a part`);
   for (const name of ["accent", "bg", "ink-1", "face-text", "corner", "space"]) assert.ok(values.has(name), `--${name} is not read as a value`);
+  for (const name of ["info", "verified", "info-bg", "verified-bg", "on-tone", "series-1", "series-6", "on-series", "rail-collapsed", "day"]) assert.ok(values.has(name), `--${name} is not read as a value`);
 });
 
 test("brax-ui-check exits 1 with the lines, and 0 on a clean app", () => {

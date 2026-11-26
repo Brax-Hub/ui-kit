@@ -3,10 +3,11 @@ import { cn } from "../lib/cn.ts";
 import { Button } from "./button.tsx";
 
 /* The prototype's notice (.notice, hub.css 220-223): a flat band, 12px 16px padding, bg-2 by default, the warn or
-   risk tint, or the accent tint; no icon, no border; one link on the right. shadcn's `variant` names map to tones. */
+   risk tint, or the accent tint; no icon, no border; one link on the right. shadcn's `variant` names map to tones.
+   `info` is the tint of the info state since 0.3.0 (it was bg-2 before the kit had that state); `neutral` is bg-2. */
 const tones = {
   neutral: "bg-bg-2",
-  info: "bg-bg-2",
+  info: "bg-info-bg",
   accent: "bg-accent-tint text-ink-1",
   ok: "bg-ok-bg",
   warn: "bg-warn-bg",
