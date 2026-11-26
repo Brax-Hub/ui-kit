@@ -1,12 +1,64 @@
-import { Alert, Button, FieldError, Input, Page, PageHeader, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableFrame, TableMessage, Tag, TBody, TD, TH, THead, Toolbar, TR } from '@brax-hub/ui/parts'
+import { Alert, Button, FieldError, Input, Page, PageHeader, Section, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Table, TableFrame, TableMessage, Tag, TBody, TD, TH, THead, Toolbar, TR } from '@brax-hub/ui/parts'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState, type FormEvent } from 'react'
+import { nextEventsFn, type NextEvents } from '@/server/calendar.functions'
 import { addItemFn, deleteItemFn, listItemsFn } from '@/server/items.functions'
 
 export const Route = createFileRoute('/')({
-  loader: () => listItemsFn(),
+  // The items are this module's own rows; the next events are the member's, in their Brax Mail account, asked of the
+  // hub each time (src/server/calendar.functions.ts). A refusal there comes back as data, so the items still show.
+  loader: async () => {
+    const [list, next] = await Promise.all([listItemsFn(), nextEventsFn()])
+    return { ...list, next }
+  },
   component: ItemsPage,
 })
+
+/** The member's next events from their calendar in Brax Mail, or the sentence that says why there are none to show. */
+function NextEventsSection({ next }: { next: NextEvents }) {
+  return (
+    <Section title="Your next events" data-testid="next-events">
+      {next.state === 'no_hub' ? (
+        <p className="text-ink-3" data-testid="next-events-no-hub">
+          No hub here: on a hub this lists the next events of your calendar in Brax Mail.
+        </p>
+      ) : next.state === 'refused' ? (
+        <Alert data-testid="next-events-refused" data-code={next.code}>
+          {next.say}
+          {next.again ? ' Reload the page to ask again.' : ''}
+        </Alert>
+      ) : (
+        <>
+          <TableFrame>
+            <Table data-testid="next-events-list">
+              <THead>
+                <TR>
+                  <TH>When</TH>
+                  <TH>What</TH>
+                  <TH>Where</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {next.events.map((event) => (
+                  <TR key={event.id}>
+                    {/* A repeating event comes once, as it is stored: its date is the day it first happened. */}
+                    <TD mono>{[event.repeats ? 'since' : null, event.date, event.time ?? (event.date ? 'all day' : null), event.time ? event.zone : null].filter(Boolean).join(' ')}</TD>
+                    <TD>
+                      {event.title} {event.repeats ? <Tag>repeats</Tag> : null}
+                    </TD>
+                    <TD>{event.place ?? ''}</TD>
+                  </TR>
+                ))}
+                {next.events.length === 0 ? <TableMessage colSpan={3}>Nothing in the next seven days.</TableMessage> : null}
+              </TBody>
+            </Table>
+          </TableFrame>
+          {next.more ? <p className="text-small text-ink-3">There are more in your calendar.</p> : null}
+        </>
+      )}
+    </Section>
+  )
+}
 
 function ItemsPage() {
   const data = Route.useLoaderData()
@@ -94,6 +146,7 @@ function ItemsPage() {
           </TBody>
         </Table>
       </TableFrame>
+      <NextEventsSection next={data.next} />
     </Page>
   )
 }

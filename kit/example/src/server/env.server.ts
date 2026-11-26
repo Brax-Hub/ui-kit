@@ -34,6 +34,8 @@ export interface AppEnv {
   gatewayKeysUrl: string | undefined
   /** Local only: a stand-in hub for the event feed (tooling/hub-events-stub.mjs), followed when there is no credential. */
   hubEventsUrl: string | undefined
+  /** Local only: a stand-in hub for a person's calendar and address book (tooling/hub-records-stub.mjs), called when there is no credential. */
+  hubRecordsUrl: string | undefined
   /** 'off' stops the job runner in this process (the suites, the RLS test). */
   jobs: 'on' | 'off'
 }
@@ -78,6 +80,7 @@ export function getEnv(): AppEnv {
     lccTlsName: process.env.LCC_TLS_NAME || undefined,
     gatewayKeysUrl: appEnv === 'local' ? process.env.GATEWAY_KEYS_URL || 'http://127.0.0.1:38400/gateway-keys' : undefined,
     hubEventsUrl: appEnv === 'local' ? process.env.HUB_EVENTS_URL || undefined : undefined,
+    hubRecordsUrl: appEnv === 'local' ? process.env.HUB_RECORDS_URL || undefined : undefined,
     jobs: process.env.JOBS === 'off' ? 'off' : 'on',
   }
   return cached

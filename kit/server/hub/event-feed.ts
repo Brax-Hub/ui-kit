@@ -41,7 +41,7 @@ export interface HubEvent {
   at: string
   /** The hub membership the event is about, when there is one. */
   person: string | null
-  /** Ids, never a record's contents: `event` (and `uid`) for the calendar kinds. */
+  /** Ids, never a record's contents: `event` (and `uid`) for the calendar kinds, `contact` (and `uid`) for the contact kinds. */
   data: Record<string, string>
 }
 

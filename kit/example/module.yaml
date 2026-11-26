@@ -10,8 +10,11 @@ stage: experimental
 min_platform: "0.1"
 documentation: https://github.com/Brax-Hub/ui-kit
 # people.read for the nightly people sync; chat.send for cards; requests.create for questions to the owner;
-# calendar.read for the calendar kinds of the event feed (src/server/events/register.ts). calendar.read is a personal
-# scope: the hub shows a calendar event only for a member who consents, and the install is the owner's to approve.
+# calendar.read for the calendar kinds of the event feed (src/server/events/register.ts) and to list a member's next
+# events from their calendar in Brax Mail (src/server/calendar.functions.ts). calendar.read is a personal scope: the
+# hub shows a calendar event only for a member who consents, and the install is the owner's to approve.
+# An app that writes events adds calendar.write; one that reads the address book adds contacts.read. contacts.write
+# cannot be asked for yet: the manifest validator does not list it (kit/README.md, "A person's calendar and address book").
 scopes: [people.read, chat.send, requests.create, calendar.read]
 surfaces:
   service:
