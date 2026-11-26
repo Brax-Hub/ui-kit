@@ -214,3 +214,31 @@ in order. The six checks for a real hub were run once against the stand-in behin
 certificate (five passed, the sixth waits for a person to change a calendar event), and a certificate of another
 authority was refused. Not run: anything against a real hub (the lab hub needs a hub release with the feed), and the
 manifest validator on the example's new `calendar.read`.
+
+## Status of the install without a token (2026-11-26)
+
+`Brax-Hub/ui-kit` is public since 26 November 2026 (ADR-039 "Open" 9), and nothing in the kit hands git a token any
+more. Everything below was run with nothing for git to authenticate with: no token in the environment, no credential
+helper, no prompt, no SSH key.
+
+Green on this PC (Windows, Node 24, npm 12.2.0): at the root a clean `npm ci`, `npm test` (60) and the typecheck; in
+`kit/example` a clean `npm ci`, the gate (typecheck, 14 scanner rules, the UI check, 95 RLS assertions, build),
+`npm test` (37 passed, 7 skipped without a hub) and `node kit/init.mjs --check example kit/example`. An app made by
+`init` with the UI kit from the tag `ui-v0.2.0`: `npm install`, `npm ci` from the lock file under each way npm writes
+the address (`git+https`, `git+ssh`), and, after `npm run routes`, the gate with the same numbers and `npm test`.
+
+The image, built once on this PC (Docker 29.9.2, linux/amd64) from an app made by `init` (slug `example`, the lock
+file npm 12 wrote) with `docker build .` and no build secret: `npm ci` in the build stage installed the UI kit with
+the rest (235 packages), the build passed, the image was 761 MB. Run read-only with a `/data` volume, as `release.yml`
+runs it: `healthz` 200 within 5 s, 401 without the member headers, 200 with them, 401 on `tools/call` without a
+token, and the page's stylesheet came from the image with the UI kit's values in it. The image, the container and the
+volume were removed afterwards. It is the first build of the image since an app takes the UI kit as a package
+(25 November 2026). `kit/example` itself cannot be built into an image from its own folder: it takes the UI kit from
+the working tree (`file:../..`), which a build in that folder cannot see.
+
+Green in CI (Linux, Node 22): `ui`, `kit`, and `by-tag`, which installs the UI kit from git at the pull request's
+commit and then from the lock file alone under each way npm writes the address, with a job token that may read
+nothing and an ssh that refuses (it was never asked).
+
+Not run: `release.yml` and an app's `ci.yml` as workflows (they run in an app's repository), the browser suites, the
+overlay, an install on a hub.
